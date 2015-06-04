@@ -4,4 +4,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="BSConnectionTitle">Base Station Connector</string>
+    <string name="ScanForBlueTooth">Scan Devices</string>
+    <string name="RefreshPairedDevices">Refresh Paired</string>
 </resources>

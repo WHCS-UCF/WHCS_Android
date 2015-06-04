@@ -1,6 +1,7 @@
 <resources>
-    <string name="app_name">WHCS_Android</string>
+    <string name="app_name">WHCS Android</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="BSConnectionTitle">Base Station Connector</string>
 </resources>

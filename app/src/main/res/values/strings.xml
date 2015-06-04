@@ -6,4 +6,6 @@
     <string name="BSConnectionTitle">Base Station Connector</string>
     <string name="ScanForBlueTooth">Scan Devices</string>
     <string name="RefreshPairedDevices">Refresh Paired</string>
+    <string name="PairedHeadline">Paired Devices:</string>
+    <string name="ActiveHeadline">Active Devices:</string>
 </resources>

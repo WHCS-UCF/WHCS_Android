@@ -10,8 +10,16 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@color/primaryLight"
+        android:gravity="center"
+        android:textSize="18sp"
+        android:paddingTop="5dp"
         android:text="@string/PairedHeadline"
-        android:id="@+id/pairedTextView"/>
+        android:id="@+id/pairedTextView"
+        android:layout_alignRight="@+id/pairedListView"
+        android:layout_alignEnd="@+id/pairedListView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
     <ListView
         android:layout_width="wrap_content"
@@ -25,9 +33,14 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@color/primaryLight"
+        android:gravity="center"
+        android:textSize="18sp"
         android:id="@+id/activeTextView"
         android:text="@string/ActiveHeadline"
         android:layout_centerVertical="true"
+        android:layout_alignRight="@+id/activeListView"
+        android:layout_alignEnd="@+id/activeListView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
@@ -48,6 +61,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
+        android:background="@color/primary"
         android:id="@+id/linearLayout">
 
         <com.dd.CircularProgressButton

@@ -26,6 +26,8 @@ public class WHCSActivity extends AppCompatActivity {
         this.whcsBlueToothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
+    //Uses the activities BlueToothAdapter to see if BlueTooth is enabled. If it isn't it starts
+    //a BlueTooth activation activity.
     private void enableBluetooth()
     {
         if (!whcsBlueToothAdapter.isEnabled()) {

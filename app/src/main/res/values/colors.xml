@@ -15,5 +15,7 @@
     <item name="primary" type="color">#FF9800</item>
     <item name="primaryDark" type="color">#F57C00</item>
     <item name="primaryBorder" type="color">#E65100</item>
-    <item name="accent" type="color">#84FFFF</item>
+    <item name="primaryButton" type="color">#FFA726</item>
+    <item name="accent" type="color">#FFFF8D</item>
+    <item name="primaryLight" type="color">#FFCC80</item>
 </resources>

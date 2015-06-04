@@ -8,7 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 
-public class BaseStationConnectActivity extends AppCompatActivity {
+public class BaseStationConnectActivity extends WHCSActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

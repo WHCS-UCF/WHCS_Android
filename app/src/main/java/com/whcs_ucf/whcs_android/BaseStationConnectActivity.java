@@ -10,9 +10,11 @@ import android.content.IntentFilter;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -30,7 +32,7 @@ public class BaseStationConnectActivity extends WHCSActivity {
     private CircularProgressButton activeButton;
 
     private ArrayAdapter<String> pairedArrayAdapter;
-    private ArrayAdapter<String> activeArrayAdapter;
+    private BluetoothDeviceAdapter activeArrayAdapter;
 
     //some supporting objects are needed to discover active BlueTooth Devices.
     //We need to start an asynchronous device finder and then register a
@@ -48,6 +50,8 @@ public class BaseStationConnectActivity extends WHCSActivity {
         this.setupGUIVariables();
         //sets event listeners for buttons
         this.setupButtonListeners();
+        //sets event listeners for clicking list items
+        this.setupListListeners();
     }
 
     @Override
@@ -82,7 +86,7 @@ public class BaseStationConnectActivity extends WHCSActivity {
         pairedArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         pairedList.setAdapter(pairedArrayAdapter);
 
-        activeArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        activeArrayAdapter = new BluetoothDeviceAdapter(this, android.R.layout.simple_list_item_1);
         activeList.setAdapter(activeArrayAdapter);
 
         //Establishes the references to the buttons in the basestation connection activity.
@@ -117,7 +121,7 @@ public class BaseStationConnectActivity extends WHCSActivity {
                     // Get the BluetoothDevice object from the Intent
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     // Add the name and address to an array adapter to show in a ListView
-                    activeArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+                    activeArrayAdapter.add(device);
                 }
                 else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                     //We want the active device button to stop the refeshing effect.
@@ -137,7 +141,19 @@ public class BaseStationConnectActivity extends WHCSActivity {
     }
 
     private void setupListListeners() {
+        pairedList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+            }
+        });
+
+        activeList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            }
+        });
     }
 
     private void listPairedDevices() {
@@ -162,7 +178,6 @@ public class BaseStationConnectActivity extends WHCSActivity {
     private void listActiveDevices() {
 
         if(DebugFlags.RUNNING_ON_VM){
-            listDevicesForVM(activeArrayAdapter);
             return;
         }
         if(whcsBlueToothAdapter.isDiscovering()) {
@@ -193,5 +208,6 @@ public class BaseStationConnectActivity extends WHCSActivity {
     @Override
     protected void onDestroy() {
         this.unregisterReceiver(activeDeviceReceiver);
+        super.onDestroy();
     }
 }

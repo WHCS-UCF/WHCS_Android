@@ -65,7 +65,7 @@
         android:id="@+id/linearLayout">
 
         <com.dd.CircularProgressButton
-            android:id="@+id/btn1WithText"
+            android:id="@+id/activeButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
@@ -76,7 +76,7 @@
             app:cpb_textIdle="@string/ScanForBlueTooth" />
 
         <com.dd.CircularProgressButton
-            android:id="@+id/btn2WithText"
+            android:id="@+id/pairedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/white"

@@ -12,14 +12,16 @@ import android.widget.Toast;
  * Created by Jimmy on 6/4/2015.
  */
 public class WHCSActivity extends AppCompatActivity {
-    private BluetoothAdapter whcsBlueToothAdapter;
+    protected BluetoothAdapter whcsBlueToothAdapter;
     protected static final int REQUEST_ENABLE_BT = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         refreshBlueToothAdapter();
-        enableBluetooth();
+        if(!DebugFlags.RUNNING_ON_VM) {
+            enableBluetooth();
+        }
     }
 
     protected void refreshBlueToothAdapter(){

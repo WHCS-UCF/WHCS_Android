@@ -5,7 +5,9 @@ package com.whcs_ucf.whcs_android;
  */
 public class ClientCallback {
 
-    public void onResponse() {}
+    public void onResponse(WHCSResponse response) {}
 
     public void onTimeOut() {}
+
+    public void onSentOut() {}
 }

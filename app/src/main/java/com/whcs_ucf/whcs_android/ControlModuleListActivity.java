@@ -29,7 +29,7 @@ public class ControlModuleListActivity extends WHCSActivity {
         WHCSBaseStationClient client = new WHCSBaseStationClient();
         client.performCommand(new ClientCallback() {
             @Override
-            public void onResponse() {
+            public void onResponse(WHCSResponse response) {
                 Log.d("WHCS", "testing callback.");
             }
         });

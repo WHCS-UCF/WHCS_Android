@@ -23,6 +23,14 @@
             android:name=".ControlModuleListActivity"
             android:label="@string/title_activity_control_module_list" >
         </activity>
+        <activity
+            android:name=".DebugActivity"
+            android:label="@string/title_activity_debug"
+            android:parentActivityName=".BaseStationConnectActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.whcs_ucf.whcs_android.BaseStationConnectActivity" />
+        </activity>
     </application>
 
 </manifest>

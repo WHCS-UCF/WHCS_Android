@@ -9,4 +9,5 @@
     <string name="PairedHeadline">Paired Devices</string>
     <string name="ActiveHeadline">Active Devices</string>
     <string name="title_activity_control_module_list">ControlModuleListActivity</string>
+    <string name="title_activity_debug">DebugActivity</string>
 </resources>

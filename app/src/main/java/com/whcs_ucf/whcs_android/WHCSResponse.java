@@ -114,23 +114,23 @@ public class WHCSResponse {
         }
 
         private boolean checkIfResponseArrayComplete() {
-            if(responseArray.length < 3) {
+            if(newDataIndex < 3) {
                 return false;
             }
             if((WHCSOpCodes.getWHCSResponseTypeFromOpCode(responseArray[1]) == ResponseType.NO_RESULT)) {
                 return true;
             }
             else if((WHCSOpCodes.getWHCSResponseTypeFromOpCode(responseArray[1]) == ResponseType.BYTE_RESULT)) {
-                if(responseArray.length >= 4) {
+                if(newDataIndex >= 4) {
                     return true;
                 }
             }
             else if(WHCSOpCodes.getWHCSResponseTypeFromOpCode(responseArray[1]) == ResponseType.VARIABLE_SIZE_RESULT) {
-                if(responseArray.length < 4) {
+                if(newDataIndex < 4) {
                     return false;
                 }
                 byte variableResponseLength = responseArray[3];
-                if(responseArray.length == 4 + variableResponseLength) {
+                if(newDataIndex == 4 + variableResponseLength) {
                     return true;
                 }
                 else return false;
@@ -143,13 +143,13 @@ public class WHCSResponse {
                 throw new Error("Can't get a response if the parser isn't finished yet.");
             }
 
-            if(responseArray.length < 3) {
+            if(newDataIndex < 3) {
                 throw new Error("A response must be at least 3 bytes.");
             }
-            if(responseArray.length == 3) {
+            if(WHCSOpCodes.getWHCSResponseTypeFromOpCode(responseArray[1]) == ResponseType.NO_RESULT) {
                 return new WHCSResponse(responseArray[0], responseArray[1], responseArray[2]);
             }
-            else if(responseArray.length == 4) {
+            else if(WHCSOpCodes.getWHCSResponseTypeFromOpCode(responseArray[1]) == ResponseType.BYTE_RESULT) {
                 return new WHCSResponse(responseArray[0], responseArray[1], responseArray[2], responseArray[3]);
             }
             else {

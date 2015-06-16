@@ -29,7 +29,7 @@ public class WHCSCommand implements Comparable<WHCSCommand> {
         this();
     }
 
-    public WHCSCommand(byte refId, byte opCode, byte controlTarget, byte result) {
+    private WHCSCommand(byte refId, byte opCode, byte controlTarget, byte result) {
         this();
     }
 
@@ -66,6 +66,14 @@ public class WHCSCommand implements Comparable<WHCSCommand> {
 
     public byte getRefId() {
         return refId;
+    }
+
+    public static WHCSCommand CreateGetBaseStationStatusDEBUGCommand() {
+        return new WHCSCommand((byte)0x00, WHCSOpCodes.GET_STATUS_OF_BASE_STATION, (byte)0x00);
+    }
+
+    public static WHCSCommand CreateGetBaseStationStatusCommand() {
+        return new WHCSCommand(GetUniqueRefId(), WHCSOpCodes.GET_STATUS_OF_BASE_STATION, (byte)0x00);
     }
 
     @Override

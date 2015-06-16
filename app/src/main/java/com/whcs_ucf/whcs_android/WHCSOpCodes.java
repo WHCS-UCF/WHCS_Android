@@ -39,6 +39,43 @@ public class WHCSOpCodes {
     public static final byte CONTROL_MODULES_CHANGED = 0x70;
 
     public static WHCSResponse.ResponseType getWHCSResponseTypeFromOpCode(byte opCode) {
-        return WHCSResponse.ResponseType.NO_RESULT;
+        switch(opCode) {
+
+            case GET_STATUS_OF_BASE_STATION:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+            case GET_MODULE_STATUS:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+            case TURN_ON_MODULE:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+            case TURN_OFF_MODULE:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+            case TOGGLE_MODULE:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+            case GET_CONTROL_MODULE_TYPE:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+            case GET_DATA_COLLECTOR_DATA:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+            case GET_NUMBER_OF_MODULES:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+            case GET_CONTROL_MODULE_UID:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+            case SET_UPDATE_INTERVAL:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+
+            case SUCCESS_NO_RESULT:
+                return WHCSResponse.ResponseType.NO_RESULT;
+            case SUCCESS_WITH_RESULT:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+            case ERROR_NO_RESULT:
+                return WHCSResponse.ResponseType.NO_RESULT;
+            case ERROR_WITH_RESULT:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+
+            case CONTROL_MODULES_CHANGED:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+
+            default:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+        }
     }
 }

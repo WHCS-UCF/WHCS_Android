@@ -144,7 +144,9 @@ public class BaseStationConnectActivity extends WHCSActivity {
         pairedList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+                if(DebugFlags.START_DEBUG_ACTIVITY_FROM_LIST_VIEW) {
+                    startDebugActivity();
+                }
             }
         });
 
@@ -203,6 +205,11 @@ public class BaseStationConnectActivity extends WHCSActivity {
         for(int i=0; i<5; i++) {
             aa.add("Fake Device number #" + i);
         }
+    }
+
+    private void startDebugActivity() {
+        Intent intent = new Intent(getApplicationContext(), DebugActivity.class);
+        startActivity(intent);
     }
 
     @Override

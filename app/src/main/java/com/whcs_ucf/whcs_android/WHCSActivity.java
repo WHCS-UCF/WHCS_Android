@@ -1,8 +1,10 @@
 package com.whcs_ucf.whcs_android;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Debug;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,6 +16,8 @@ import android.widget.Toast;
 public class WHCSActivity extends AppCompatActivity {
     protected BluetoothAdapter whcsBlueToothAdapter;
     protected static final int REQUEST_ENABLE_BT = 1;
+    protected CommandIssuer whcsIssuer;
+    protected WHCSBluetoothListener whcsBluetoothListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,5 +47,15 @@ public class WHCSActivity extends AppCompatActivity {
             Toast.makeText(this.getApplicationContext(),"Bluetooth is already on",
                     Toast.LENGTH_LONG).show();
         }
+    }
+
+    protected void initIssuerAndListener() {
+        if(!DebugFlags.DEBUG_BLUETOOTH_COMM_PIPELINE) {
+            throw new Error("Not yet implemented for actual communication.");
+        }
+        whcsIssuer = new CommandIssuer();
+        whcsBluetoothListener = new WHCSBluetoothListener(whcsIssuer);
+        whcsIssuer.setCommandSender(whcsBluetoothListener);
+        whcsIssuer.run();
     }
 }

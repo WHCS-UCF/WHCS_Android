@@ -144,7 +144,7 @@ public class BaseStationConnectActivity extends WHCSActivity {
         pairedList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if(DebugFlags.START_DEBUG_ACTIVITY_FROM_LIST_VIEW) {
+                if (DebugFlags.START_DEBUG_ACTIVITY_FROM_LIST_VIEW) {
                     startDebugActivity();
                 }
             }
@@ -153,7 +153,10 @@ public class BaseStationConnectActivity extends WHCSActivity {
         activeList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+                if(DebugFlags.DEBUG_CONTROL_MODULE_LIST_ACTIVITY_NO_BASESTATION_CONNECTION) {
+                    startControlModuleListActivity();
+                    return;
+                }
             }
         });
     }
@@ -180,6 +183,7 @@ public class BaseStationConnectActivity extends WHCSActivity {
     private void listActiveDevices() {
 
         if(DebugFlags.RUNNING_ON_VM){
+            listDevicesForVM(activeList);
             return;
         }
         if(whcsBlueToothAdapter.isDiscovering()) {
@@ -207,8 +211,22 @@ public class BaseStationConnectActivity extends WHCSActivity {
         }
     }
 
+    private void listDevicesForVM(ListView lv) {
+        ArrayAdapter<String> aa = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        aa.clear();
+        for(int i=0; i<5; i++) {
+            aa.add("Fake Device number #" + i);
+        }
+        lv.setAdapter(aa);
+    }
+
     private void startDebugActivity() {
         Intent intent = new Intent(getApplicationContext(), DebugActivity.class);
+        startActivity(intent);
+    }
+
+    private void startControlModuleListActivity() {
+        Intent intent = new Intent(getApplicationContext(), ControlModuleListActivity.class);
         startActivity(intent);
     }
 

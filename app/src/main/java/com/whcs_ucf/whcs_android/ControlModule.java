@@ -6,6 +6,7 @@ package com.whcs_ucf.whcs_android;
 public class ControlModule {
     private int identityNumber;
     private ControlModuleRole role;
+    private String name;
 
     public ControlModule(ControlModuleRole role) {
         this.role = role;
@@ -13,5 +14,24 @@ public class ControlModule {
 
     public ControlModuleRole getRole() {
         return role;
+    }
+
+    public String getName() {
+        if(name == null) {
+            return role.getRoleNameRepresentation();
+        }
+        return name;
+    }
+
+    public void setName(String n) {
+        name = n;
+    }
+
+    public int getIdentityNumber() {
+        return identityNumber;
+    }
+
+    public void setIdentityNumber(int n) {
+        identityNumber = n;
     }
 }

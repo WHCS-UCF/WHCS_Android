@@ -14,7 +14,7 @@ public class ToggleableControlModule extends ControlModule {
         return status;
     }
 
-    public static enum ToggleableState {
+    public enum ToggleableState {
         ON,
         OFF
     }

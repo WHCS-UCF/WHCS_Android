@@ -15,4 +15,7 @@ public class DebugFlags {
     // the functionality of pipeline given stubbed out data that mimics what would be received
     //from the WHCS Base Station.
     public static final boolean DEBUG_BLUETOOTH_COMM_PIPELINE = true;
+
+    //
+    public static final boolean DEBUG_CONTROL_MODULE_LIST_ACTIVITY_NO_BASESTATION_CONNECTION = true;
 }

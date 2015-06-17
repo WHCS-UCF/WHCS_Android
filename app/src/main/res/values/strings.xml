@@ -8,6 +8,9 @@
     <string name="RefreshPairedDevices">Refresh Paired</string>
     <string name="PairedHeadline">Paired Devices</string>
     <string name="ActiveHeadline">Active Devices</string>
-    <string name="title_activity_control_module_list">ControlModuleListActivity</string>
+    <string name="title_activity_control_module_list">WHCS Android</string>
     <string name="title_activity_debug">DebugActivity</string>
+    <string name="speech">Speech</string>
+    <string name="edit">Edit</string>
+    <string name="controlModulesHeadline">Control Modules</string>
 </resources>

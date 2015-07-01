@@ -10,6 +10,16 @@ public class ToggleableControlModule extends ControlModule {
         super(role);
     }
 
+    public ToggleableState toggle() {
+        if(status == ToggleableState.OFF) {
+            status = ToggleableState.ON;
+        }
+        else {
+            status = ToggleableState.OFF;
+        }
+        return status;
+    }
+
     public ToggleableState getStatus() {
         return status;
     }

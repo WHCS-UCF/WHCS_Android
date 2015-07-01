@@ -12,17 +12,27 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.util.UUID;
+
 /**
  * Created by Jimmy on 6/4/2015.
  */
 public class WHCSActivity extends AppCompatActivity {
     public static final String TAG_MAC_STRING = "macString";
+    // Well known SPP UUID
+    //This SPP is a property of the bluetooth module.
+    public static final UUID WHCS_BLUETOOTH_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     protected BluetoothAdapter whcsBlueToothAdapter;
     protected static final int REQUEST_ENABLE_BT = 1;
     protected CommandIssuer whcsIssuer;
     protected WHCSBluetoothListener whcsBluetoothListener;
     protected BluetoothDevice baseStationDevice;
+
+    //Holds state of whether or not the issuer and BlueToothListener duo have been initialized by
+    //Giving the listener a BlueToothSocket
+    private static boolean issuerAndListenerInitialized = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,23 +72,55 @@ public class WHCSActivity extends AppCompatActivity {
 
     private void initializeBaseStation(String macString) {
         baseStationDevice = whcsBlueToothAdapter.getRemoteDevice(macString);
-
-        WHCSBaseStationClient client = new WHCSBaseStationClient();
-        client.performCommand(new ClientCallback() {
-            @Override
-            public void onResponse(WHCSResponse response) {
-                Log.d("WHCS", "testing callback.");
-            }
-        });
     }
 
-    protected void initIssuerAndListener() {
+    protected void initIssuerAndListener(BluetoothDevice device) throws IOException {
         if(!DebugFlags.DEBUG_BLUETOOTH_COMM_PIPELINE) {
             throw new Error("Not yet implemented for actual communication.");
         }
-        whcsIssuer = new CommandIssuer();
-        whcsBluetoothListener = new WHCSBluetoothListener(whcsIssuer);
+        if(this.issuerAndListenerInitialized) {
+            throw new Error("Tried to initialize an already initialized issuer and listener.");
+        }
+        whcsIssuer = CommandIssuer.GetSingletonCommandIssuer();
+        try {
+            whcsBluetoothListener = WHCSBluetoothListener.GetSingletonBluetoothListener(device, whcsIssuer);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
         whcsIssuer.setCommandSender(whcsBluetoothListener);
-        whcsIssuer.run();
+        issuerAndListenerInitialized = true;
+        Log.d("WHCS-UCF", "Initialized issuer and listener.");
+    }
+
+    protected void refreshIssuerAndListener() {
+        if(!DebugFlags.DEBUG_BLUETOOTH_COMM_PIPELINE) {
+            throw new Error("Not yet implemented for actual communication.");
+        }
+        if(!this.issuerAndListenerInitialized) {
+            throw new Error("Must initialize issuer and listener before refreshing them.");
+        }
+        whcsIssuer = CommandIssuer.GetSingletonCommandIssuer();
+        whcsBluetoothListener = WHCSBluetoothListener.GetSingletonBluetoothListener(whcsIssuer);
+    }
+
+    protected void destroyIssuerAndListener() {
+        if(!issuerAndListenerInitialized) {
+            return;
+        }
+        whcsIssuer = CommandIssuer.GetSingletonCommandIssuer();
+        whcsBluetoothListener = WHCSBluetoothListener.GetSingletonBluetoothListener(whcsIssuer);
+        whcsIssuer.stop();
+        whcsBluetoothListener.stop();
+        whcsBluetoothListener.closeSocket();
+        issuerAndListenerInitialized = false;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(issuerAndListenerInitialized) {
+            destroyIssuerAndListener();
+        }
     }
 }

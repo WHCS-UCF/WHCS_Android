@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.dd.CircularProgressButton;
 
+import java.io.IOException;
 import java.util.Set;
 
 
@@ -125,7 +126,7 @@ public class BaseStationConnectActivity extends WHCSActivity {
                 }
                 else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                     //We want the active device button to stop the refeshing effect.
-                    activeButton.setProgress(0);
+                    BaseStationConnectActivity.this.cancelDiscovery();
                 }
             }
         };
@@ -153,9 +154,21 @@ public class BaseStationConnectActivity extends WHCSActivity {
         activeList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if(DebugFlags.DEBUG_CONTROL_MODULE_LIST_ACTIVITY_NO_BASESTATION_CONNECTION) {
+                if (DebugFlags.DEBUG_CONTROL_MODULE_LIST_ACTIVITY_NO_BASESTATION_CONNECTION) {
                     startControlModuleListActivity();
                     return;
+                } else {
+                    try {
+                        Log.d("WHCS-UCF", "beginning to initialize issuer and listener.");
+                        BaseStationConnectActivity.this.cancelDiscovery();
+                        BaseStationConnectActivity.this.initIssuerAndListener(activeArrayAdapter.getItem(position));
+                        //Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Initialized issuer and listener", Toast.LENGTH_LONG).show();
+                        startControlModuleListActivity();
+                        Log.d("WHCS-UCF", "Started ControlModuleListActicity");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Could not initialize BluetoothConnection", Toast.LENGTH_LONG).show();
+                    }
                 }
             }
         });
@@ -196,7 +209,7 @@ public class BaseStationConnectActivity extends WHCSActivity {
 
         //Begin discovery but notify through text if we weren't able to for some reason.
         if(!whcsBlueToothAdapter.startDiscovery()) {
-            Toast.makeText(this.getApplicationContext(), "BlueTooth Discovery couldn't start.", Toast.LENGTH_LONG);
+            Toast.makeText(this.getApplicationContext(), "BlueTooth Discovery couldn't start.", Toast.LENGTH_LONG).show();
             return;
         }
         //Set progress between 1-99 to get the refreshing look.
@@ -228,6 +241,11 @@ public class BaseStationConnectActivity extends WHCSActivity {
     private void startControlModuleListActivity() {
         Intent intent = new Intent(getApplicationContext(), ControlModuleListActivity.class);
         startActivity(intent);
+    }
+
+    private void cancelDiscovery() {
+        BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
+        this.activeButton.setProgress(0);
     }
 
     @Override

@@ -6,7 +6,7 @@ package com.whcs_ucf.whcs_android;
 public class DebugFlags {
     //This flag is used when running the application on a virtual machine because the virtual machine will not have Bluetooth Capabilities
     //Turning off Bluetooth actions in the code for compatibility with vm can be done with this flag.
-    public static final boolean RUNNING_ON_VM = true;
+    public static final boolean RUNNING_ON_VM = false;
 
     //This flag is used to cause the listview in the boot activity to bring up a debug activity that is multipurpose.
     public static final boolean START_DEBUG_ACTIVITY_FROM_LIST_VIEW = true;
@@ -16,6 +16,10 @@ public class DebugFlags {
     //from the WHCS Base Station.
     public static final boolean DEBUG_BLUETOOTH_COMM_PIPELINE = true;
 
-    //
-    public static final boolean DEBUG_CONTROL_MODULE_LIST_ACTIVITY_NO_BASESTATION_CONNECTION = true;
+    //Used in Base Station Connection Activity to bypass initializing the issuer and listener.
+    //The issuer and listener cannot be initialized if there is no base station device to create a socket with.
+    public static final boolean DEBUG_CONTROL_MODULE_LIST_ACTIVITY_NO_BASESTATION_CONNECTION = false;
+
+    //prevents initializing the issuer and listener in the ControlModuleListActivity
+    public static final boolean PREVENT_INITIALIZING_ISSUER_AND_LISTENER = false;
 }

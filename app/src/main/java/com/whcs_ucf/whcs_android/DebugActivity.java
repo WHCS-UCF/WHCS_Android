@@ -48,7 +48,7 @@ public class DebugActivity extends WHCSActivity {
         this.testCommPipelineButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DebugActivity.this.initIssuerAndListener();
+                DebugActivity.this.refreshIssuerAndListener();
                 DebugActivity.this.whcsIssuer.queueDebugCommand(new ClientCallback() {
                     @Override
                     public void onResponse(WHCSResponse response) {

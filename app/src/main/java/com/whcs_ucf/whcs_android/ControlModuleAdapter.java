@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.List;
@@ -52,9 +53,19 @@ public class ControlModuleAdapter extends ArrayAdapter<ControlModule>{
 
         if (controlModule != null) {
             TextView text1 = (TextView) v.findViewById(R.id.cmText1);
+            Switch toggleableSwitch = (Switch) v.findViewById(R.id.cmSwitch);
 
             if (text1 != null) {
                 text1.setText(controlModule.getName());
+            }
+            if(controlModule instanceof ToggleableControlModule) {
+                ToggleableControlModule togControlModule = (ToggleableControlModule) controlModule;
+                if(togControlModule.getStatus() == ToggleableControlModule.ToggleableState.ON) {
+                    toggleableSwitch.setChecked(true);
+                }
+                else {
+                    toggleableSwitch.setChecked(false);
+                }
             }
         }
 

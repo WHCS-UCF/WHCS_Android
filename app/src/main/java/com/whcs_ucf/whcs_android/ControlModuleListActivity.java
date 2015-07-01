@@ -2,15 +2,18 @@ package com.whcs_ucf.whcs_android;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.os.Looper;
 import android.speech.RecognizerIntent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,20 +21,29 @@ import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 
-public class ControlModuleListActivity extends WHCSActivity {
+public class ControlModuleListActivity extends WHCSActivity implements PushFromBaseStationHandler {
     protected static final int REQUEST_OK = 1;
+    public static final String TAG_BLUETOOTHADDRESS = "bt_address";
 
     private Button speechButton;
     private Button editButton;
     private ListView controlModuleListView;
     private ControlModuleAdapter controlModuleAdapter;
+    private Handler GUIEventLoopHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_control_module_list);
+        Log.d("WHCS-UCF", "Creating ControlModuleListActivity");
 
-        setupGUI();
+        this.GUIEventLoopHandler = new Handler(Looper.getMainLooper());
+        this.setupGUI();
+
+        if(!DebugFlags.PREVENT_INITIALIZING_ISSUER_AND_LISTENER) {
+            this.refreshIssuerAndListener();
+            this.setupEventSubscribers();
+        }
     }
 
     @Override
@@ -89,6 +101,10 @@ public class ControlModuleListActivity extends WHCSActivity {
         });
     }
 
+    private void setupEventSubscribers() {
+        this.whcsIssuer.addPushFromBaseStationHandler(this);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -107,7 +123,30 @@ public class ControlModuleListActivity extends WHCSActivity {
     private void randomlyPopulateControlModuleList() {
         controlModuleAdapter.clear();
         for(int i = 0; i < 10; i++) {
-            controlModuleAdapter.add(new ControlModule(ControlModuleRole.GetRandomControlModuleRole()));
+            controlModuleAdapter.add(new ToggleableControlModule(ControlModuleRole.GetRandomControlModuleRole()));
+        }
+    }
+
+    @Override
+    public void onPush(WHCSResponse response) {
+        Log.d("WHCS-UCF", "Received push event from base station.");
+        GUIEventLoopHandler.post(new ToggleUpdater());
+        Log.d("WHCS-UCF", "Posted event to handler.");
+    }
+
+    private class ToggleUpdater implements Runnable {
+        @Override
+        public void run() {
+            if(controlModuleAdapter == null)
+                return;
+            if(controlModuleAdapter.isEmpty())
+                return;
+            ControlModule cm = controlModuleAdapter.getItem(0);
+            if(cm instanceof ToggleableControlModule) {
+                ToggleableControlModule tcm = (ToggleableControlModule) cm;
+                tcm.toggle();
+            }
+            controlModuleAdapter.notifyDataSetChanged();
         }
     }
 }

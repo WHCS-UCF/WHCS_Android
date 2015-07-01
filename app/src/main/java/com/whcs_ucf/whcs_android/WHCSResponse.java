@@ -92,11 +92,15 @@ public class WHCSResponse {
          * The command parser can be reused with its reset() functionality.
          */
         private boolean completed;
+        //Responses from the base station all start with 0x1B. We don't want to parse any response data
+        //Until this specific byte has been reached.
+        private boolean receivedStartByte;
         private int newDataIndex;
         private byte[] responseArray = new byte[WHCSResponse.MAX_RESPONSE_SIZE];
 
         public WHCSResponseParser() {
             this.completed = false;
+            this.receivedStartByte = false;
             this.newDataIndex = 0;
         }
 
@@ -104,6 +108,12 @@ public class WHCSResponse {
             if(completed)
                 return completed;
             for(int i = 0; i < numBytes; i++) {
+                if((!this.receivedStartByte) && (data[i] != 0x1B)) {
+                    continue;
+                }
+                else if(!this.receivedStartByte) {
+                    receivedStartByte = true;
+                }
                 if(newDataIndex < WHCSResponse.MAX_RESPONSE_SIZE) {
                     responseArray[newDataIndex] = data[i];
                 }
@@ -169,6 +179,7 @@ public class WHCSResponse {
         public void reset() {
             this.completed = false;
             this.newDataIndex = 0;
+            this.receivedStartByte = false;
         }
     }
 }

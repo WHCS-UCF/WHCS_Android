@@ -2,7 +2,9 @@ package com.whcs_ucf.whcs_android;
 
 import android.os.Looper;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by Jimmy on 6/15/2015.
@@ -13,6 +15,9 @@ public class CommandIssuer implements Runnable, ResponseHandler {
      * Command Issuer is a middleman between the application and the BluetoothListener which directly interacts with sockets.
      * Commands are queued into the command issuer and the issuer handles dispatching these commands to the listener. The issuer
      * handles getting responses back from the listener and routing them back to the appropriate callbacks.
+     *
+     * CommandIssuer is a singleton class. There should only be one in existence at all times while using the WHCS application.
+     * In order to get the singleton instance of CommandIssuer use getSingletongCommandIssuer()
      *
      * Example
      *
@@ -32,14 +37,31 @@ public class CommandIssuer implements Runnable, ResponseHandler {
     private LinkedList<CommandCallbackPair> outstandingCommands;
     private CommandCallbackPair currentCommand;
     private CommandSender commandSender;
+    private ArrayList<PushFromBaseStationHandler> pushHandlerList;
+    //Used to tell the issuer when to stop. It always checks if it needs to stop.
+    private boolean shouldStop;
 
-    public CommandIssuer() {
+    private static CommandIssuer SingletonCommandIssuer;
+    private static Thread IssuerThread;
+
+    private CommandIssuer() {
         this.commandIsOutgoing = false;
         this.outstandingCommands = new LinkedList<CommandCallbackPair>();
+        this.pushHandlerList = new ArrayList<PushFromBaseStationHandler>();
+    }
+
+    public static CommandIssuer GetSingletonCommandIssuer() {
+        if(SingletonCommandIssuer == null) {
+            SingletonCommandIssuer = new CommandIssuer();
+            IssuerThread = new Thread(SingletonCommandIssuer);
+            IssuerThread.start();
+        }
+        return SingletonCommandIssuer;
     }
 
     @Override
     public void run() {
+        if(shouldStop) { return; }
         if(!this.commandIsOutgoing) {
             if(!this.outstandingCommands.isEmpty()) {
                 this.issueCommandCallbackPair();
@@ -87,17 +109,27 @@ public class CommandIssuer implements Runnable, ResponseHandler {
     }
 
     public void handleResponse(WHCSResponse response) {
-        if(response.getRefId() == currentCommand.getCommand().getRefId()) {
+        if(currentCommand != null && response.getRefId() == currentCommand.getCommand().getRefId()) {
             this.currentCommand.getCallback().onResponse(response);
             this.currentCommand = null;
             this.commandIsOutgoing = false;
         }
         else {
-            //This needs to handle pushes from the base station. The push won't have a reference to an issued command.
+            for(PushFromBaseStationHandler handler : pushHandlerList) {
+                handler.onPush(response);
+            }
         }
+    }
+
+    public void stop() {
+        this.shouldStop = true;
     }
 
     public void setCommandSender(CommandSender sender) {
         this.commandSender = sender;
+    }
+
+    public void addPushFromBaseStationHandler(PushFromBaseStationHandler handler) {
+        this.pushHandlerList.add(handler);
     }
 }

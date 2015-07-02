@@ -1,5 +1,6 @@
 package com.whcs_ucf.whcs_android;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Looper;
@@ -11,17 +12,19 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 
-public class ControlModuleListActivity extends WHCSActivity implements PushFromBaseStationHandler {
+public class ControlModuleListActivity extends WHCSActivityWithCleanup implements PushFromBaseStationHandler {
     protected static final int REQUEST_OK = 1;
     public static final String TAG_BLUETOOTHADDRESS = "bt_address";
 
@@ -78,6 +81,7 @@ public class ControlModuleListActivity extends WHCSActivity implements PushFromB
         randomlyPopulateControlModuleList();
 
         setupButtonListeners();
+        setupListListener();
     }
 
     private void setupButtonListeners() {
@@ -97,6 +101,16 @@ public class ControlModuleListActivity extends WHCSActivity implements PushFromB
             @Override
             public void onClick(View v) {
 
+            }
+        });
+    }
+
+    private void setupListListener() {
+        this.controlModuleListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.d("WHCS-UCF", "click.");
+                startControlModuleDetailsActivity(ControlModuleListActivity.this.controlModuleAdapter.getItem(position));
             }
         });
     }
@@ -132,6 +146,12 @@ public class ControlModuleListActivity extends WHCSActivity implements PushFromB
         Log.d("WHCS-UCF", "Received push event from base station.");
         GUIEventLoopHandler.post(new ToggleUpdater());
         Log.d("WHCS-UCF", "Posted event to handler.");
+    }
+
+    private void startControlModuleDetailsActivity(ControlModule cm) {
+        Intent intent = new Intent(this.getApplicationContext(), ControlModuleDetailsActivity.class);
+        intent.putExtra(ControlModuleDetailsActivity.TAG_CONTROLMODULE, cm);
+        this.startActivity(intent);
     }
 
     private class ToggleUpdater implements Runnable {

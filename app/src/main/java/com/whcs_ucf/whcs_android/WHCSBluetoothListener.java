@@ -30,6 +30,7 @@ import java.util.Queue;
  */
 public class WHCSBluetoothListener implements Runnable, CommandSender {
 
+    private BluetoothDevice mostRecentDevice;
     private BluetoothSocket socket;
     private ResponseHandler responseHandler;
     WHCSResponse.WHCSResponseParser responseParser = new WHCSResponse.WHCSResponseParser();
@@ -75,7 +76,13 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
         if(SingletonWHCSBluetoothListener == null) {
             SingletonWHCSBluetoothListener = new WHCSBluetoothListener(responseHandler);
             SingletonWHCSBluetoothListener.setupBluetoothSocketFromDevice(btDevice);
-            SingletonWHCSBluetoothListener.socket.connect();
+            try {
+                SingletonWHCSBluetoothListener.socket.connect();
+            }
+            catch(IOException e) {
+                SingletonWHCSBluetoothListener = null;
+                throw e;
+            }
             new Thread(SingletonWHCSBluetoothListener).start();
         }
         return SingletonWHCSBluetoothListener;
@@ -96,7 +103,7 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
                     bytesRead = inStream.read(buffer);
                     if (bytesRead != -1) {
                         this.responseParser.addData(buffer, bytesRead);
-                        Log.d("WHCS-UCF", new String(buffer, 0, bytesRead));
+                        Log.d("WHCS-UCF", "BluetoothListener received: "+new String(buffer, 0, bytesRead));
                     }
                 }
                 this.handoffResponseToIssuer();
@@ -136,6 +143,7 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
     }
 
     private void setupBluetoothSocketFromDevice(BluetoothDevice device) throws IOException {
+        this.mostRecentDevice = device;
         this.socket = device.createInsecureRfcommSocketToServiceRecord(WHCSActivity.WHCS_BLUETOOTH_UUID);
     }
 
@@ -147,6 +155,29 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
                 e.printStackTrace();
                 Log.d("WHCS-UCF", "Could not close BluetoothListener Socket.");
             }
+        }
+    }
+
+    public BluetoothDevice getBluetoothDevice() {
+        return mostRecentDevice;
+    }
+
+    public void setBluetoothDevice(BluetoothDevice device) {
+        mostRecentDevice = device;
+    }
+
+    public void refreshConnection() {
+        if(this.socket.isConnected()) {
+            try {
+                this.socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            this.setupBluetoothSocketFromDevice(mostRecentDevice);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

@@ -24,6 +24,22 @@ public enum ControlModuleRole {
         }
     }
 
+    public static ControlModuleRole parseRole(String str) {
+        str = str.toLowerCase();
+        switch(str) {
+            case "outlet":
+                return OUTLET_CONTROLLER;
+            case "light":
+                return LIGHT_CONTROLLER;
+            case "door":
+                return DOOR_CONTROLLER;
+            case "sensor":
+                return SENSOR_COLLECTOR;
+            default:
+                throw new Error("String is not mapped to a control module role.");
+        }
+    }
+
     public static ControlModuleRole GetRandomControlModuleRole() {
         int roleNum = (int)(Math.random() * 4);
         switch(roleNum) {

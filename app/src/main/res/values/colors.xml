@@ -18,4 +18,5 @@
     <item name="primaryButton" type="color">#FFA726</item>
     <item name="accent" type="color">#FFFF8D</item>
     <item name="primaryLight" type="color">#FFCC80</item>
+    <item name="primarySuperLight" type="color">#FFE0B2</item>
 </resources>

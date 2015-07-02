@@ -31,6 +31,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.whcs_ucf.whcs_android.BaseStationConnectActivity" />
         </activity>
+        <activity
+            android:name=".ControlModuleDetailsActivity"
+            android:label="@string/title_activity_control_module_details" >
+        </activity>
     </application>
 
 </manifest>

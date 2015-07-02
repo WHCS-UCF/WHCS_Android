@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Debug;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +25,7 @@ public class WHCSActivity extends AppCompatActivity {
     //This SPP is a property of the bluetooth module.
     public static final UUID WHCS_BLUETOOTH_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
+    protected SharedPreferences mPrefs;
     protected BluetoothAdapter whcsBlueToothAdapter;
     protected static final int REQUEST_ENABLE_BT = 1;
     protected CommandIssuer whcsIssuer;
@@ -32,11 +34,12 @@ public class WHCSActivity extends AppCompatActivity {
 
     //Holds state of whether or not the issuer and BlueToothListener duo have been initialized by
     //Giving the listener a BlueToothSocket
-    private static boolean issuerAndListenerInitialized = false;
+    protected static boolean issuerAndListenerInitialized = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mPrefs = getApplicationContext().getSharedPreferences("default",MODE_WORLD_READABLE);
         refreshBlueToothAdapter();
 
         if(!DebugFlags.RUNNING_ON_VM) {
@@ -116,11 +119,16 @@ public class WHCSActivity extends AppCompatActivity {
         issuerAndListenerInitialized = false;
     }
 
+    protected void saveBaseStationDeviceForStop() {
+        mPrefs.edit().putString(TAG_MAC_STRING, whcsBluetoothListener.getBluetoothDevice().getAddress());
+    }
+
+    protected BluetoothDevice loadBaseStationDeviceForStop() {
+        return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(mPrefs.getString(this.TAG_MAC_STRING,""));
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(issuerAndListenerInitialized) {
-            destroyIssuerAndListener();
-        }
     }
 }

@@ -12,5 +12,18 @@
     <string name="title_activity_debug">DebugActivity</string>
     <string name="speech">Speech</string>
     <string name="edit">Edit</string>
+    <string name="save">Save</string>
+    <string name="discard">Discard</string>
+    <string name="status">Status:</string>
+    <string name="changeName">Change Name:</string>
+    <string name="newNameHere">Type New Name Here</string>
     <string name="controlModulesHeadline">Control Modules</string>
+    <string name="title_activity_control_module_details">ControlModuleDetailsActivity</string>
+    <string name="controlModuleGroups">Control Module Groups:</string>
+    <string name="n1">1</string>
+    <string name="n2">2</string>
+    <string name="n3">3</string>
+    <string name="n4">4</string>
+    <string name="n5">5</string>
+    <string name="n6">6</string>
 </resources>

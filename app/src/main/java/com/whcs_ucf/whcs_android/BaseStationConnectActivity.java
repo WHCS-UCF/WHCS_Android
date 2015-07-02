@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.Set;
 
 
-public class BaseStationConnectActivity extends WHCSActivity {
+public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
     private ListView pairedList;
     private ListView activeList;
     private CircularProgressButton pairedbutton;

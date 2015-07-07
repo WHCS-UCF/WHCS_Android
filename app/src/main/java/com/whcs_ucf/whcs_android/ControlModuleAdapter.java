@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -97,5 +98,13 @@ public class ControlModuleAdapter extends ArrayAdapter<ControlModule>{
         }
 
         return v;
+    }
+
+    public ArrayList<ControlModule> getControlModules() {
+        ArrayList<ControlModule> list = new ArrayList<ControlModule>();
+        for(int i = 0; i < this.getCount(); i++) {
+            list.add(this.getItem(i));
+        }
+        return list;
     }
 }

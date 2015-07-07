@@ -130,14 +130,23 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
                 sb.append(" ");
             }
             sb.deleteCharAt(sb.length()-1);
-            Toast.makeText(ControlModuleListActivity.this, "You said " + sb.toString() + ".", Toast.LENGTH_LONG).show();
+            SpeechCommand speechCommand = SpeechParser.parseSpeechTextForCommand(sb.toString(), controlModuleAdapter.getControlModules());
+            if(speechCommand != null) {
+                Toast.makeText(ControlModuleListActivity.this.getApplicationContext(), "Recognized a command. "+speechCommand, Toast.LENGTH_LONG).show();
+                for(ControlModule cm : speechCommand.getTargetList()) {
+                    ToggleableControlModule.ToggleableState state = (speechCommand.getCommandOpCode() == WHCSOpCodes.TURN_OFF_MODULE) ? ToggleableControlModule.ToggleableState.OFF : ToggleableControlModule.ToggleableState.ON;
+                    this.changeStateToggleableControlModule(cm.getIdentityNumber(), state);
+                }
+            }
+            //Toast.makeText(ControlModuleListActivity.this, "You said " + sb.toString() + ".", Toast.LENGTH_LONG).show();
         }
     }
 
     private void randomlyPopulateControlModuleList() {
         controlModuleAdapter.clear();
+        DatabaseHandler databaseHandler = new DatabaseHandler(this.getApplicationContext());
         for(int i = 0; i < 10; i++) {
-            controlModuleAdapter.add(RandomControlModuleGenerator.GenerateRandomizedControlModule());
+            controlModuleAdapter.add(RandomControlModuleGenerator.GenerateRandomizedControlModule(databaseHandler));
         }
     }
 
@@ -168,5 +177,43 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
             }
             controlModuleAdapter.notifyDataSetChanged();
         }
+    }
+
+    private void toggleToggleableControlModule(byte identityNumber) {
+        ControlModule target = getControlModuleFromIdentityNumber(identityNumber);
+        if( target == null ) return;
+        if(target instanceof  ToggleableControlModule) {
+            ((ToggleableControlModule)target).toggle();
+            this.controlModuleAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void changeStateToggleableControlModule(byte identityNumber, ToggleableControlModule.ToggleableState state) {
+        ControlModule target = getControlModuleFromIdentityNumber(identityNumber);
+        if( target == null ) return;
+        if(target instanceof  ToggleableControlModule) {
+            ((ToggleableControlModule)target).setStatus(state);
+            this.controlModuleAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private ControlModule getControlModuleFromIdentityNumber(byte identityNumber) {
+        int indexer;
+        for(indexer = 0; indexer < controlModuleAdapter.getCount(); indexer++) {
+            if(controlModuleAdapter.getItem(indexer).getIdentityNumber() == identityNumber) {
+                return controlModuleAdapter.getItem(indexer);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        DatabaseHandler databaseHandler = new DatabaseHandler(this.getApplicationContext());
+        for(int i = 0; i < this.controlModuleAdapter.getCount(); i++) {
+            this.controlModuleAdapter.getItem(i).refreshName(databaseHandler);
+        }
+        this.controlModuleAdapter.notifyDataSetChanged();
     }
 }

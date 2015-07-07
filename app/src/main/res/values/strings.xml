@@ -15,6 +15,7 @@
     <string name="save">Save</string>
     <string name="discard">Discard</string>
     <string name="status">Status:</string>
+    <string name="role">Control Module Role:</string>
     <string name="changeName">Change Name:</string>
     <string name="newNameHere">Type New Name Here</string>
     <string name="controlModulesHeadline">Control Modules</string>

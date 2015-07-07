@@ -24,6 +24,7 @@ public class WHCSOpCodes {
     public static final byte GET_NUMBER_OF_MODULES = 0x07;
     public static final byte GET_CONTROL_MODULE_UID = 0x08;
     public static final byte SET_UPDATE_INTERVAL = 0x09;
+    public static final byte QUERY_IF_BASE_STATION = 0x0A;
 
     /*
      * responses for WHCS
@@ -60,6 +61,8 @@ public class WHCSOpCodes {
             case GET_CONTROL_MODULE_UID:
                 return WHCSResponse.ResponseType.BYTE_RESULT;
             case SET_UPDATE_INTERVAL:
+                return WHCSResponse.ResponseType.BYTE_RESULT;
+            case QUERY_IF_BASE_STATION:
                 return WHCSResponse.ResponseType.BYTE_RESULT;
 
             case SUCCESS_NO_RESULT:

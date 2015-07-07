@@ -1,5 +1,6 @@
 package com.whcs_ucf.whcs_android;
 
+import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -13,6 +14,13 @@ public class ControlModule implements Parcelable, Statusable{
 
     public ControlModule(ControlModuleRole role) {
         this.role = role;
+    }
+
+    public ControlModule(ControlModuleRole role, byte identityNumber, DatabaseHandler databaseHandler) {
+        this(role);
+        this.setIdentityNumber(identityNumber);
+
+        refreshName(databaseHandler);
     }
 
     public ControlModule(Parcel in) {
@@ -49,6 +57,13 @@ public class ControlModule implements Parcelable, Statusable{
 
     public void randomizeIdentityNumber() {
         this.identityNumber = (byte)(int)(Math.random() * Byte.MAX_VALUE);
+    }
+
+    public void refreshName(DatabaseHandler databaseHandler) {
+        ControlModule checkIfExistCM = databaseHandler.getControlModule(identityNumber);
+        if(checkIfExistCM != null) {
+            this.setName(checkIfExistCM.getName());
+        }
     }
 
     @Override

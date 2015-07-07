@@ -13,6 +13,10 @@ public class DataCollectionControlModule extends ControlModule {
         super(role);
     }
 
+    public DataCollectionControlModule(ControlModuleRole role, byte identityNumber, DatabaseHandler databaseHandler) {
+        super(role, identityNumber, databaseHandler);
+    }
+
     public DataCollectionControlModule(Parcel in) {
         super(in);
         String[] data= new String[4];

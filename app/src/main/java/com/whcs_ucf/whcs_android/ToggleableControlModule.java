@@ -13,6 +13,10 @@ public class ToggleableControlModule extends ControlModule{
         super(role);
     }
 
+    public ToggleableControlModule(ControlModuleRole role, byte identityNumber, DatabaseHandler databaseHandler) {
+        super(role, identityNumber, databaseHandler);
+    }
+
     public ToggleableControlModule(Parcel in) {
         super(in);
         String[] data= new String[4];

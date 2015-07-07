@@ -9,6 +9,7 @@ public class WHCSResponse {
     public static final int MAX_RESPONSE_SIZE = 100;
     /*
      * Response structure:
+     * start bit 0x1B
      * |  reference ID  |  Op Code  | Control Module Target  |  [length  |  ...value bytes... |  ] / [Response Value  |  ]
      */
     private byte refId;

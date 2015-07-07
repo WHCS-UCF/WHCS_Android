@@ -5,7 +5,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 
 public class ControlModuleDetailsActivity extends WHCSActivity {
@@ -15,6 +20,10 @@ public class ControlModuleDetailsActivity extends WHCSActivity {
      */
     public static final String TAG_CONTROLMODULE = "control_module";
 
+    private Button saveButton;
+    private Button discardButton;
+    private EditText changeNameEditText;
+    private TextView roleIndicatorTextView;
     private TextView controlModuleTextView;
     private TextView statusIndicatorTextView;
     private ControlModule underlyingControlModule;
@@ -34,6 +43,7 @@ public class ControlModuleDetailsActivity extends WHCSActivity {
         }
 
         setupGUIForControlModule();
+        setupGUIEvents();
     }
 
     @Override
@@ -59,13 +69,40 @@ public class ControlModuleDetailsActivity extends WHCSActivity {
     }
 
     private void setupGUIVariables() {
+        this.saveButton = (Button) this.findViewById(R.id.saveButton);
+        this.discardButton = (Button) this.findViewById(R.id.discardButton);
+        this.roleIndicatorTextView = (TextView) this.findViewById(R.id.roleIndicatorTextView);
+        this.changeNameEditText = (EditText) this.findViewById(R.id.changeNameEditText);
         this.controlModuleTextView = (TextView) this.findViewById(R.id.controlModuleTextView);
         this.statusIndicatorTextView = (TextView) this.findViewById(R.id.statusIndicatorTextView);
     }
 
     private void setupGUIForControlModule() {
         this.controlModuleTextView.setText(this.underlyingControlModule.getName());
-
         this.statusIndicatorTextView.setText(this.underlyingControlModule.statusableGetString());
+        this.roleIndicatorTextView.setText(this.underlyingControlModule.getRole().name());
+    }
+
+    private void setupGUIEvents() {
+        this.saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(ControlModuleDetailsActivity.this.underlyingControlModule.getName().equals(ControlModuleDetailsActivity.this.changeNameEditText.getText().toString())) {
+                    return;
+                }
+                Log.d("WHCS-UCF", "Changing name of Control Module: " + underlyingControlModule + " to: "+ changeNameEditText.getText().toString());
+                ControlModuleDetailsActivity.this.underlyingControlModule.setName(changeNameEditText.getText().toString());
+                ControlModule checkIfExistsCM;
+                DatabaseHandler dbHandler = new DatabaseHandler(ControlModuleDetailsActivity.this.getApplicationContext());
+                checkIfExistsCM = dbHandler.getControlModule(underlyingControlModule.getIdentityNumber());
+                if(checkIfExistsCM == null) {
+                    dbHandler.addControlModule(underlyingControlModule);
+                }
+                else {
+                    dbHandler.updateControlModule(underlyingControlModule);
+                }
+                finish();
+            }
+        });
     }
 }

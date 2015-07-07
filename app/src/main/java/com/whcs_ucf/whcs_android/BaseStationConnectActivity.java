@@ -46,7 +46,7 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_base_station_connect);
-
+        Log.d("WHCS-UCF", "V1.3");
         //establishes refs to buttons, lists
         this.setupGUIVariables();
         //sets event listeners for buttons
@@ -109,36 +109,38 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
         activeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                if(activeDeviceReceiver == null) {
+                    // Create a BroadcastReceiver for ACTION_FOUND
+                    activeDeviceReceiver = new BroadcastReceiver() {
+                        public void onReceive(Context context, Intent intent) {
+                            String action = intent.getAction();
+                            // When discovery finds a device
+                            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                                // Get the BluetoothDevice object from the Intent
+                                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                                // Add the name and address to an array adapter to show in a ListView
+                                activeArrayAdapter.add(device);
+                            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                                //We want the active device button to stop the refeshing effect.
+                                BaseStationConnectActivity.this.cancelDiscovery();
+                            }
+                        }
+                    };
+
+                    // Register the BroadcastReceiver
+                    //This must be called after activeDeviceReceiver is initialized with the BlueTooth Discovery handler
+                    IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+                    registerReceiver(activeDeviceReceiver, filter); // Don't forget to unregister during onDestroy
+
+                    //Register to receive when BlueTooth discovery stops.
+                    IntentFilter discoveryStopFilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+                    registerReceiver(activeDeviceReceiver, discoveryStopFilter);
+                }
+
                 listActiveDevices();
             }
         });
-
-        // Create a BroadcastReceiver for ACTION_FOUND
-        activeDeviceReceiver = new BroadcastReceiver() {
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                // When discovery finds a device
-                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                    // Get the BluetoothDevice object from the Intent
-                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    // Add the name and address to an array adapter to show in a ListView
-                    activeArrayAdapter.add(device);
-                }
-                else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                    //We want the active device button to stop the refeshing effect.
-                    BaseStationConnectActivity.this.cancelDiscovery();
-                }
-            }
-        };
-
-        // Register the BroadcastReceiver
-        //This must be called after activeDeviceReceiver is initialized with the BlueTooth Discovery handler
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(activeDeviceReceiver, filter); // Don't forget to unregister during onDestroy
-
-        //Register to receive when BlueTooth discovery stops.
-        IntentFilter discoveryStopFilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        registerReceiver(activeDeviceReceiver, discoveryStopFilter);
     }
 
     private void setupListListeners() {
@@ -155,6 +157,7 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (DebugFlags.DEBUG_CONTROL_MODULE_LIST_ACTIVITY_NO_BASESTATION_CONNECTION) {
+                    BaseStationConnectActivity.this.cancelDiscovery();
                     startControlModuleListActivity();
                     return;
                 } else {
@@ -245,12 +248,21 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
 
     private void cancelDiscovery() {
         BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
+        if(activeDeviceReceiver != null) {
+            this.unregisterReceiver(activeDeviceReceiver);
+            activeDeviceReceiver = null;
+        }
         this.activeButton.setProgress(0);
     }
 
     @Override
+    protected void onStop() {
+        cancelDiscovery();
+        super.onStop();
+    }
+
+    @Override
     protected void onDestroy() {
-        this.unregisterReceiver(activeDeviceReceiver);
         super.onDestroy();
     }
 }

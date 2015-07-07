@@ -137,7 +137,7 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
     private void randomlyPopulateControlModuleList() {
         controlModuleAdapter.clear();
         for(int i = 0; i < 10; i++) {
-            controlModuleAdapter.add(new ToggleableControlModule(ControlModuleRole.GetRandomControlModuleRole()));
+            controlModuleAdapter.add(RandomControlModuleGenerator.GenerateRandomizedControlModule());
         }
     }
 

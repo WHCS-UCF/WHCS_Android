@@ -8,13 +8,16 @@
         android:layout_height="wrap_content"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
-        android:id="@+id/cmText1"/>
+        android:id="@+id/sensorCMText1"/>
 
-    <Switch
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:gravity="right"
-        android:id="@+id/cmSwitch"
+        android:id="@+id/sensorCMText2"
+        android:text="@string/data_75"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 

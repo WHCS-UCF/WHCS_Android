@@ -41,30 +41,57 @@ public class ControlModuleAdapter extends ArrayAdapter<ControlModule>{
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        View v = convertView;
-
-        if (v == null) {
-            LayoutInflater vi;
-            vi = LayoutInflater.from(getContext());
-            v = vi.inflate(R.layout.control_module_list_row, null);
-        }
-
         ControlModule controlModule = getItem(position);
 
-        if (controlModule != null) {
-            TextView text1 = (TextView) v.findViewById(R.id.cmText1);
-            Switch toggleableSwitch = (Switch) v.findViewById(R.id.cmSwitch);
+        View v = null;
 
-            if (text1 != null) {
-                text1.setText(controlModule.getName());
-            }
+        LayoutInflater vi;
+        vi = LayoutInflater.from(getContext());
+
+
+
+        if (controlModule != null) {
             if(controlModule instanceof ToggleableControlModule) {
+                v = vi.inflate(R.layout.control_module_list_row, null);
+
+                TextView text1 = (TextView) v.findViewById(R.id.cmText1);
+                Switch toggleableSwitch = (Switch) v.findViewById(R.id.cmSwitch);
+
+                if (text1 != null) {
+                    text1.setText(controlModule.getName());
+                }
                 ToggleableControlModule togControlModule = (ToggleableControlModule) controlModule;
                 if(togControlModule.getStatus() == ToggleableControlModule.ToggleableState.ON) {
                     toggleableSwitch.setChecked(true);
                 }
                 else {
                     toggleableSwitch.setChecked(false);
+                }
+            }
+            else if(controlModule instanceof DataCollectionControlModule) {
+                v = vi.inflate(R.layout.sensor_control_module_list_row, null);
+
+                TextView sensorCMText1 = (TextView) v.findViewById(R.id.sensorCMText1);
+                TextView sensorCMText2 = (TextView) v.findViewById(R.id.sensorCMText2);
+
+                DataCollectionControlModule dcm = (DataCollectionControlModule) controlModule;
+
+                if (sensorCMText1 != null) {
+                    sensorCMText1.setText(controlModule.getName());
+                }
+
+                if (sensorCMText2 != null) {
+                    sensorCMText2.setText(Byte.toString(dcm.getSensorValue()));
+                }
+            }
+            else {
+                v = vi.inflate(R.layout.control_module_list_row, null);
+
+                TextView text1 = (TextView) v.findViewById(R.id.cmText1);
+                Switch toggleableSwitch = (Switch) v.findViewById(R.id.cmSwitch);
+
+                if (text1 != null) {
+                    text1.setText(controlModule.getName());
                 }
             }
         }

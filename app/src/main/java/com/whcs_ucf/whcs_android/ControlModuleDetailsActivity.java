@@ -2,6 +2,7 @@ package com.whcs_ucf.whcs_android;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -15,6 +16,7 @@ public class ControlModuleDetailsActivity extends WHCSActivity {
     public static final String TAG_CONTROLMODULE = "control_module";
 
     private TextView controlModuleTextView;
+    private TextView statusIndicatorTextView;
     private ControlModule underlyingControlModule;
 
     @Override
@@ -24,6 +26,12 @@ public class ControlModuleDetailsActivity extends WHCSActivity {
 
         setupGUIVariables();
         this.underlyingControlModule = this.getIntent().getParcelableExtra(TAG_CONTROLMODULE);
+        if(this.underlyingControlModule instanceof  ToggleableControlModule) {
+            Log.d("WHCS-UCF", "detail view for toggleable: "+ underlyingControlModule.toString());
+        }
+        else if(this.underlyingControlModule instanceof DataCollectionControlModule) {
+            Log.d("WHCS-UCF", "detail view for datacollection");
+        }
 
         setupGUIForControlModule();
     }
@@ -52,9 +60,12 @@ public class ControlModuleDetailsActivity extends WHCSActivity {
 
     private void setupGUIVariables() {
         this.controlModuleTextView = (TextView) this.findViewById(R.id.controlModuleTextView);
+        this.statusIndicatorTextView = (TextView) this.findViewById(R.id.statusIndicatorTextView);
     }
 
     private void setupGUIForControlModule() {
         this.controlModuleTextView.setText(this.underlyingControlModule.getName());
+
+        this.statusIndicatorTextView.setText(this.underlyingControlModule.statusableGetString());
     }
 }

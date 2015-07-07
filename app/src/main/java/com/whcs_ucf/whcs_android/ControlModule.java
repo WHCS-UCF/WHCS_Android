@@ -6,8 +6,8 @@ import android.os.Parcelable;
 /**
  * Created by Jimmy on 6/8/2015.
  */
-public class ControlModule implements Parcelable{
-    private int identityNumber;
+public class ControlModule implements Parcelable, Statusable{
+    private byte identityNumber;
     private ControlModuleRole role;
     private String name;
 
@@ -19,7 +19,7 @@ public class ControlModule implements Parcelable{
         String[] data= new String[3];
 
         in.readStringArray(data);
-        this.identityNumber = Integer.parseInt(data[0]);
+        this.identityNumber = Byte.parseByte(data[0]);
         this.role = ControlModuleRole.parseRole(data[1]);
         this.name = data[2];
     }
@@ -30,7 +30,7 @@ public class ControlModule implements Parcelable{
 
     public String getName() {
         if(name == null) {
-            return role.getRoleNameRepresentation();
+            return role.getRoleNameRepresentation() + " " + Byte.toString(this.getIdentityNumber());
         }
         return name;
     }
@@ -39,12 +39,21 @@ public class ControlModule implements Parcelable{
         name = n;
     }
 
-    public int getIdentityNumber() {
+    public byte getIdentityNumber() {
         return identityNumber;
     }
 
-    public void setIdentityNumber(int n) {
+    public void setIdentityNumber(byte n) {
         identityNumber = n;
+    }
+
+    public void randomizeIdentityNumber() {
+        this.identityNumber = (byte)(int)(Math.random() * Byte.MAX_VALUE);
+    }
+
+    @Override
+    public String toString() {
+        return "Identity #: " + Integer.toString(this.getIdentityNumber()) +", Control Module Role: " +getRole().getRoleNameRepresentation() +", Name: " + getName();
     }
 
     @Override
@@ -69,4 +78,9 @@ public class ControlModule implements Parcelable{
             return new ControlModule[size];
         }
     };
+
+    @Override
+    public String statusableGetString() {
+        return "";
+    }
 }

@@ -18,8 +18,9 @@
     <string name="changeName">Change Name:</string>
     <string name="newNameHere">Type New Name Here</string>
     <string name="controlModulesHeadline">Control Modules</string>
-    <string name="title_activity_control_module_details">ControlModuleDetailsActivity</string>
+    <string name="title_activity_control_module_details">Control Module Details</string>
     <string name="controlModuleGroups">Control Module Groups:</string>
+    <string name="data_75">75</string>
     <string name="n1">1</string>
     <string name="n2">2</string>
     <string name="n3">3</string>

@@ -18,8 +18,8 @@ public class DebugFlags {
 
     //Used in Base Station Connection Activity to bypass initializing the issuer and listener.
     //The issuer and listener cannot be initialized if there is no base station device to create a socket with.
-    public static final boolean DEBUG_CONTROL_MODULE_LIST_ACTIVITY_NO_BASESTATION_CONNECTION = false;
+    public static final boolean DEBUG_CONTROL_MODULE_LIST_ACTIVITY_NO_BASESTATION_CONNECTION = true;
 
     //prevents initializing the issuer and listener in the ControlModuleListActivity
-    public static final boolean PREVENT_INITIALIZING_ISSUER_AND_LISTENER = false;
+    public static final boolean PREVENT_INITIALIZING_ISSUER_AND_LISTENER = true;
 }

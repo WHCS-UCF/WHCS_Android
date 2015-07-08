@@ -98,4 +98,9 @@ public class ControlModule implements Parcelable, Statusable{
     public String statusableGetString() {
         return "";
     }
+
+    @Override
+    public void updateStatus(byte statusRepresentation) {
+
+    }
 }

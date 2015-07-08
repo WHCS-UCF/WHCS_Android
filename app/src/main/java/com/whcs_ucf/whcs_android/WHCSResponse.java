@@ -1,5 +1,7 @@
 package com.whcs_ucf.whcs_android;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 /**
@@ -76,6 +78,18 @@ public class WHCSResponse {
         return this.refId;
     }
 
+    public byte getControlTarget() {
+        return this.controlTarget;
+    }
+
+    public byte getResponseByte() {
+        if(this.responseType != ResponseType.BYTE_RESULT) {
+            throw new Error("Trying to get byte result from WHCSResponse that is not BYTE_RESULT.");
+        }
+
+        return this.responseByte;
+    }
+
     public enum ResponseType {
         NO_RESULT,
         BYTE_RESULT,
@@ -105,9 +119,7 @@ public class WHCSResponse {
             this.newDataIndex = 0;
         }
 
-        public boolean addData(byte[] data, int numBytes) {
-            if(completed)
-                return completed;
+        public void addData(byte[] data, int numBytes, ResponseHandler responseHandler) {
             for(int i = 0; i < numBytes; i++) {
                 if((!this.receivedStartByte) && (data[i] != 0x1B)) {
                     continue;
@@ -115,13 +127,16 @@ public class WHCSResponse {
                 else if(!this.receivedStartByte) {
                     receivedStartByte = true;
                 }
-                if(newDataIndex < WHCSResponse.MAX_RESPONSE_SIZE) {
+                else if(newDataIndex < WHCSResponse.MAX_RESPONSE_SIZE) {
                     responseArray[newDataIndex] = data[i];
+                    newDataIndex++;
+                    completed = checkIfResponseArrayComplete();
+                    if(completed) {
+                        responseHandler.handleResponse(getResponseFromCompletedParser());
+                        reset();
+                    }
                 }
-                newDataIndex++;
             }
-            completed = checkIfResponseArrayComplete();
-            return completed;
         }
 
         private boolean checkIfResponseArrayComplete() {

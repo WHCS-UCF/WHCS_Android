@@ -35,10 +35,11 @@ public class SpeechParser {
      */
     public static SpeechCommand parseSpeechTextForCommand(String speechText, List<ControlModule> possibleTargets) {
         speechText = speechText.toLowerCase();
+        String[] words = speechText.split(" ");
         Log.d("WHCS-UCF", "SPEECHTEXT: "+speechText);
         int indexer;
         for(indexer = 0; indexer < possibleCommands.length; indexer++) {
-            if(speechText.contains(possibleCommands[indexer])) {
+            if(SpeechParser.CheckIfStringInStringArray(words, possibleCommands[indexer])) {
                 Log.d("WHCS-UCF", "found command: " + possibleCommands[indexer]);
                 break;
             }
@@ -60,5 +61,14 @@ public class SpeechParser {
         }
 
         return speechCommand;
+    }
+
+    private static boolean CheckIfStringInStringArray(String[] words, String targetWord) {
+        for(int i = 0; i < words.length; i ++) {
+            if(words[i].equals(targetWord)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -27,10 +27,14 @@ public class WHCSCommand implements Comparable<WHCSCommand> {
 
     private WHCSCommand(byte refId, byte opCode, byte controlTarget) {
         this();
+        this.refId = refId;
+        this.opCode = opCode;
+        this.controlTarget = controlTarget;
     }
 
     private WHCSCommand(byte refId, byte opCode, byte controlTarget, byte result) {
-        this();
+        this(refId, opCode, controlTarget);
+        this.result = result;
     }
 
     public static WHCSCommand parseCommand(Byte byteArr[]) {
@@ -72,12 +76,16 @@ public class WHCSCommand implements Comparable<WHCSCommand> {
         return new WHCSCommand((byte)0x00, WHCSOpCodes.GET_STATUS_OF_BASE_STATION, (byte)0x00);
     }
 
-    public static WHCSCommand CreateGetBaseStationStatusCommand() {
-        return new WHCSCommand(GetUniqueRefId(), WHCSOpCodes.GET_STATUS_OF_BASE_STATION, (byte)0x00);
+    public static WHCSCommand CreateQueryIfBaseStationCommand() {
+        return new WHCSCommand(GetUniqueRefId(), WHCSOpCodes.QUERY_IF_BASE_STATION, (byte)0x04);
     }
 
     @Override
     public int compareTo(WHCSCommand another) {
         return another.refId - this.refId;
+    }
+
+    public byte[] toByteArray() {
+        return new byte[] {refId, opCode, controlTarget};
     }
 }

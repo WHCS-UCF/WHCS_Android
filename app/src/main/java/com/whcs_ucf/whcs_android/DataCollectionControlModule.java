@@ -66,4 +66,9 @@ public class DataCollectionControlModule extends ControlModule {
     public String statusableGetString() {
         return Byte.toString(this.getSensorValue());
     }
+
+    @Override
+    public void updateStatus(byte statusRepresentation) {
+        this.setSensorValue(statusRepresentation);
+    }
 }

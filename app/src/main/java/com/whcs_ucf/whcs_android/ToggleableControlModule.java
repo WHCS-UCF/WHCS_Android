@@ -84,4 +84,14 @@ public class ToggleableControlModule extends ControlModule{
     public String statusableGetString() {
         return this.getStatus().name();
     }
+
+    @Override
+    public void updateStatus(byte statusRepresentation) {
+        if(statusRepresentation == 0x00) {
+            this.setStatus(ToggleableState.OFF);
+        }
+        else {
+            this.setStatus(ToggleableState.ON);
+        }
+    }
 }

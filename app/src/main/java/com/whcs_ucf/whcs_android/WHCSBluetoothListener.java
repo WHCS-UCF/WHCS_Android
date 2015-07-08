@@ -97,11 +97,10 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
                     if(shouldStop) { return; }
                     bytesRead = inStream.read(buffer);
                     if (bytesRead != -1) {
-                        this.responseParser.addData(buffer, bytesRead);
-                        Log.d("WHCS-UCF", "BluetoothListener received: "+new String(buffer, 0, bytesRead));
+                        this.responseParser.addData(buffer, bytesRead, this.responseHandler);
+                        Log.d("WHCS-UCF", "BluetoothListener received: "+ Utils.HexStringFromByteArray(buffer, bytesRead));
                     }
                 }
-                this.handoffResponseToIssuer();
 
                 socket.getInputStream();
             }
@@ -112,24 +111,22 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
 
     public void stop() {
         this.shouldStop = true;
+        this.closeSocket();
+        SingletonWHCSBluetoothListener = null;
     }
 
     public boolean isConnected() {
         return socket.isConnected();
     }
 
-    private void handoffResponseToIssuer() {
-        this.responseHandler.handleResponse(this.responseParser.getResponseFromCompletedParser());
-    }
 
     public void performDebugResponseRead() {
         int bytesRead = 4;
         byte bytes[] = new byte[] {0x00, WHCSOpCodes.GET_STATUS_OF_BASE_STATION, 0x00, 0x02};
-        this.responseParser.addData(bytes, bytesRead);
+        this.responseParser.addData(bytes, bytesRead, responseHandler);
         if(!this.responseParser.hasCompletelyParsed()) {
             throw new Error("The byte array should be representing a completed WHCS packet.");
         }
-        this.handoffResponseToIssuer();
         this.responseParser.reset();
     }
 
@@ -181,6 +178,17 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
         if(DebugFlags.DEBUG_BLUETOOTH_COMM_PIPELINE) {
             performDebugResponseRead();
             return;
+        }
+        else {
+            try {
+                this.socket.getOutputStream().write(0x1B);
+                Log.d("WHCS-UCF", "byte sending: " + Utils.HexStringFromByteArray(command.toByteArray()));
+                this.socket.getOutputStream().write(command.toByteArray());
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.d("WHCS-UCF", "Exception: " + e.getStackTrace().toString());
+                throw new Error("Couldn't get the outputstream in BluetoothListener for sending out command");
+            }
         }
     }
 }

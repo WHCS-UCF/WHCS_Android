@@ -1,6 +1,7 @@
 package com.whcs_ucf.whcs_android;
 
 import android.os.Looper;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -61,15 +62,19 @@ public class CommandIssuer implements Runnable, ResponseHandler {
 
     @Override
     public void run() {
-        if(shouldStop) { return; }
-        if(!this.commandIsOutgoing) {
-            if(!this.outstandingCommands.isEmpty()) {
-                this.issueCommandCallbackPair();
+        while(true) {
+            if (shouldStop) {
+                return;
             }
-        }
+            if (!this.commandIsOutgoing) {
+                if (!this.outstandingCommands.isEmpty()) {
+                    this.issueCommandCallbackPair();
+                }
+            }
 
-        if(this.commandIsOutgoing && ((System.currentTimeMillis() - this.lastCommandIssueTime) > this.timeoutLength)) {
-            timeoutCurrentCommand();
+            if (this.commandIsOutgoing && ((System.currentTimeMillis() - this.lastCommandIssueTime) > this.timeoutLength)) {
+                timeoutCurrentCommand();
+            }
         }
     }
 
@@ -82,6 +87,8 @@ public class CommandIssuer implements Runnable, ResponseHandler {
             this.commandIsOutgoing = true;
             this.lastCommandIssueTime = System.currentTimeMillis();
             this.currentCommand.getCallback().onSentOut();
+
+            this.commandSender.sendOutCommand(this.currentCommand.getCommand());
         }
     }
 
@@ -108,6 +115,19 @@ public class CommandIssuer implements Runnable, ResponseHandler {
         this.commandSender.sendOutCommand(debugCommand);
     }
 
+    public void queueQueryBaseStationCommand(ClientCallback cb) {
+        if(this.commandSender == null) {
+            throw new Error("Can't issue commands if the CommandIssuer doesn't have a CommandSender.");
+        }
+        WHCSCommand debugCommand = WHCSCommand.CreateQueryIfBaseStationCommand();
+        this.currentCommand = new CommandCallbackPair(debugCommand, cb);
+        this.commandIsOutgoing = true;
+        this.lastCommandIssueTime = System.currentTimeMillis();
+        this.currentCommand.getCallback().onSentOut();
+
+        this.commandSender.sendOutCommand(debugCommand);
+    }
+
     public void handleResponse(WHCSResponse response) {
         if(currentCommand != null && response.getRefId() == currentCommand.getCommand().getRefId()) {
             this.currentCommand.getCallback().onResponse(response);
@@ -123,6 +143,7 @@ public class CommandIssuer implements Runnable, ResponseHandler {
 
     public void stop() {
         this.shouldStop = true;
+        this.SingletonCommandIssuer = null;
     }
 
     public void setCommandSender(CommandSender sender) {

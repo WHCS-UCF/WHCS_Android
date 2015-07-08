@@ -8,9 +8,9 @@ package com.whcs_ucf.whcs_android;
  * onSentOut is called as soon as the command is given to the CommandSender from the
  * CommandIssuer.
  */
-public class ClientCallback {
+public abstract class ClientCallback {
 
-    public void onResponse(WHCSResponse response) {}
+    public abstract void onResponse(WHCSResponse response);
 
     public void onTimeOut() {}
 

@@ -5,4 +5,6 @@ package com.whcs_ucf.whcs_android;
  */
 public interface Statusable {
     public String statusableGetString();
+
+    public void updateStatus(byte statusRepresentation);
 }

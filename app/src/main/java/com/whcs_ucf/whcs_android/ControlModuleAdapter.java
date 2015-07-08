@@ -1,10 +1,13 @@
 package com.whcs_ucf.whcs_android;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -15,6 +18,8 @@ import java.util.List;
  * Created by Jimmy on 6/17/2015.
  */
 public class ControlModuleAdapter extends ArrayAdapter<ControlModule>{
+    private ToggleableControlModuleCheckListener onCheckedChangeListener;
+
     public ControlModuleAdapter(Context context, int resource) {
         super(context, resource);
     }
@@ -42,7 +47,7 @@ public class ControlModuleAdapter extends ArrayAdapter<ControlModule>{
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        ControlModule controlModule = getItem(position);
+        final ControlModule controlModule = getItem(position);
 
         View v = null;
 
@@ -67,6 +72,18 @@ public class ControlModuleAdapter extends ArrayAdapter<ControlModule>{
                 }
                 else {
                     toggleableSwitch.setChecked(false);
+                }
+
+                if(this.onCheckedChangeListener != null) {
+                    toggleableSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if (ControlModuleAdapter.this.onCheckedChangeListener != null) {
+                                Log.d("WHCS-UCF", "toggled a switch.");
+                                onCheckedChangeListener.onCheckChanged(isChecked, controlModule);
+                            }
+                        }
+                    });
                 }
             }
             else if(controlModule instanceof DataCollectionControlModule) {
@@ -106,5 +123,9 @@ public class ControlModuleAdapter extends ArrayAdapter<ControlModule>{
             list.add(this.getItem(i));
         }
         return list;
+    }
+
+    public void setOnCheckedChangeListenerBeforeAddingModules(ToggleableControlModuleCheckListener listener) {
+        this.onCheckedChangeListener = listener;
     }
 }

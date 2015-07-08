@@ -1,11 +1,8 @@
 package com.whcs_ucf.whcs_android;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Looper;
 import android.speech.RecognizerIntent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -15,13 +12,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.ResourceBundle;
 
 
 public class ControlModuleListActivity extends WHCSActivityWithCleanup implements PushFromBaseStationHandler {
@@ -46,6 +39,7 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
         if(!DebugFlags.PREVENT_INITIALIZING_ISSUER_AND_LISTENER) {
             this.refreshIssuerAndListener();
             this.setupEventSubscribers();
+            this.getControlModuleStatuses();
         }
     }
 
@@ -78,10 +72,30 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
 
         this.controlModuleAdapter = new ControlModuleAdapter(this, R.layout.control_module_list_row);
         this.controlModuleListView.setAdapter(controlModuleAdapter);
-        randomlyPopulateControlModuleList();
+        setControlModuleAdapterListener();
+        populateControlModuleListForInitialDemo();
 
         setupButtonListeners();
         setupListListener();
+    }
+
+    private void setControlModuleAdapterListener() {
+        this.controlModuleAdapter.setOnCheckedChangeListenerBeforeAddingModules(new ToggleableControlModuleCheckListener() {
+            @Override
+            public void onCheckChanged(boolean isChecked, ControlModule cm) {
+                byte opCode = WHCSOpCodes.TURN_OFF_MODULE;
+                if (isChecked) {
+                    opCode = WHCSOpCodes.TURN_ON_MODULE;
+                }
+
+                ControlModuleListActivity.this.whcsIssuer.queueCommand(new WHCSCommand(opCode, cm.getIdentityNumber()), new ClientCallback() {
+                    @Override
+                    public void onResponse(WHCSResponse response) {
+
+                    }
+                });
+            }
+        });
     }
 
     private void setupButtonListeners() {
@@ -136,6 +150,12 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
                 for(ControlModule cm : speechCommand.getTargetList()) {
                     ToggleableControlModule.ToggleableState state = (speechCommand.getCommandOpCode() == WHCSOpCodes.TURN_OFF_MODULE) ? ToggleableControlModule.ToggleableState.OFF : ToggleableControlModule.ToggleableState.ON;
                     this.changeStateToggleableControlModule(cm.getIdentityNumber(), state);
+                    this.whcsIssuer.queueCommand(new WHCSCommand(speechCommand.getCommandOpCode(), cm.getIdentityNumber()), new ClientCallback() {
+                        @Override
+                        public void onResponse(WHCSResponse response) {
+
+                        }
+                    });
                 }
             }
             //Toast.makeText(ControlModuleListActivity.this, "You said " + sb.toString() + ".", Toast.LENGTH_LONG).show();
@@ -150,10 +170,18 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
         }
     }
 
+    private void populateControlModuleListForInitialDemo() {
+        controlModuleAdapter.clear();
+        DatabaseHandler databaseHandler = new DatabaseHandler(this.getApplicationContext());
+        controlModuleAdapter.add(new ToggleableControlModule(ControlModuleRole.DOOR_CONTROLLER, (byte) 0, databaseHandler));
+        controlModuleAdapter.add(new ToggleableControlModule(ControlModuleRole.LIGHT_CONTROLLER, (byte) 1, databaseHandler));
+        controlModuleAdapter.add(new DataCollectionControlModule(ControlModuleRole.SENSOR_COLLECTOR, (byte) 2, databaseHandler));
+    }
+
     @Override
     public void onPush(WHCSResponse response) {
         Log.d("WHCS-UCF", "Received push event from base station.");
-        GUIEventLoopHandler.post(new ToggleUpdater());
+        //GUIEventLoopHandler.post(new ToggleUpdater());
         Log.d("WHCS-UCF", "Posted event to handler.");
     }
 
@@ -205,6 +233,23 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
             }
         }
         return null;
+    }
+
+    private void getControlModuleStatuses() {
+        for (int i = 0; i < controlModuleAdapter.getCount(); i++) {
+            this.whcsIssuer.queueCommand(new WHCSCommand(WHCSOpCodes.GET_MODULE_STATUS, (byte) i), new ClientCallback() {
+                @Override
+                public void onResponse(WHCSResponse response) {
+                    ControlModuleListActivity.this.controlModuleAdapter.getItem(response.getControlTarget()).updateStatus(response.getResponseByte());
+                    ControlModuleListActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ControlModuleListActivity.this.controlModuleAdapter.notifyDataSetChanged();
+                        }
+                    });
+                }
+            });
+        }
     }
 
     @Override

@@ -14,12 +14,17 @@ public class DebugFlags {
     //This flag is used in the communication pipeline to switch to a debug pipeline that tests
     // the functionality of pipeline given stubbed out data that mimics what would be received
     //from the WHCS Base Station.
-    public static final boolean DEBUG_BLUETOOTH_COMM_PIPELINE = true;
+    public static final boolean DEBUG_BLUETOOTH_COMM_PIPELINE = false;
 
     //Used in Base Station Connection Activity to bypass initializing the issuer and listener.
     //The issuer and listener cannot be initialized if there is no base station device to create a socket with.
-    public static final boolean DEBUG_CONTROL_MODULE_LIST_ACTIVITY_NO_BASESTATION_CONNECTION = true;
+    public static final boolean DEBUG_CONTROL_MODULE_LIST_ACTIVITY_NO_BASESTATION_CONNECTION = false;
 
     //prevents initializing the issuer and listener in the ControlModuleListActivity
-    public static final boolean PREVENT_INITIALIZING_ISSUER_AND_LISTENER = true;
+    public static final boolean PREVENT_INITIALIZING_ISSUER_AND_LISTENER = false;
+
+    //Performs necessary routing for just sending base station query from Android application.
+    //Makes a branch in BaseStationConnectActivity whenever a bluetooth device is selected.
+    //The bluetooth device is simply queried to check if it is the WHCS base station and then data is logged
+    public static final boolean PERFORM_DEBUG_BASE_STATION_QUERY_FROM_BASE_STATION_CONNECT_ACTIVITY = false;
 }

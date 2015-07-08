@@ -7,6 +7,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -41,12 +43,14 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
     //Our application will catch the fact that it is complete.
     //An Intent filter is used to catch the
     private BroadcastReceiver activeDeviceReceiver;
+    private Handler asynchronousActivityStartHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_base_station_connect);
-        Log.d("WHCS-UCF", "V1.3");
+        Log.d("WHCS-UCF", "V1.4");
+        this.asynchronousActivityStartHandler = new Handler(Looper.getMainLooper());
         //establishes refs to buttons, lists
         this.setupGUIVariables();
         //sets event listeners for buttons
@@ -110,7 +114,7 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
             @Override
             public void onClick(View v) {
 
-                if(activeDeviceReceiver == null) {
+                if (activeDeviceReceiver == null) {
                     // Create a BroadcastReceiver for ACTION_FOUND
                     activeDeviceReceiver = new BroadcastReceiver() {
                         public void onReceive(Context context, Intent intent) {
@@ -160,14 +164,49 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
                     BaseStationConnectActivity.this.cancelDiscovery();
                     startControlModuleListActivity();
                     return;
+                } else if(DebugFlags.PERFORM_DEBUG_BASE_STATION_QUERY_FROM_BASE_STATION_CONNECT_ACTIVITY) {
+                    BaseStationConnectActivity.this.cancelDiscovery();
+                    try {
+                        if(issuerAndListenerInitialized) {
+                            destroyIssuerAndListener();
+                            return;
+                        }
+                        BaseStationConnectActivity.this.initIssuerAndListener(activeArrayAdapter.getItem(position));
+                        BaseStationConnectActivity.this.whcsIssuer.queueCommand(WHCSCommand.CreateQueryIfBaseStationCommand(), new ClientCallback() {
+                            @Override
+                            public void onResponse(WHCSResponse response) {
+                                Log.d("WHCS-UCF", "It' the base station.");
+                            }
+                            @Override
+                            public void onTimeOut() {
+                                Log.d("WHCS-UCF", "Timeout trying to connect to base station.");
+                            }
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 } else {
                     try {
                         Log.d("WHCS-UCF", "beginning to initialize issuer and listener.");
                         BaseStationConnectActivity.this.cancelDiscovery();
+                        if(issuerAndListenerInitialized) {
+                            destroyIssuerAndListener();
+                            Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Retry in 1 second.", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
                         BaseStationConnectActivity.this.initIssuerAndListener(activeArrayAdapter.getItem(position));
-                        //Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Initialized issuer and listener", Toast.LENGTH_LONG).show();
-                        startControlModuleListActivity();
-                        Log.d("WHCS-UCF", "Started ControlModuleListActicity");
+                        BaseStationConnectActivity.this.whcsIssuer.queueCommand(WHCSCommand.CreateQueryIfBaseStationCommand(), new ClientCallback() {
+                            @Override
+                            public void onResponse(WHCSResponse response) {
+                                Log.d("WHCS-UCF", "It' the base station.");
+                                asynchronousActivityStartHandler.post(new ControlModuleListActivityStarter());
+                            }
+
+                            @Override
+                            public void onTimeOut() {
+                                Log.d("WHCS-UCF", "Timeout trying to connect to base station.");
+                            }
+                        });
                     } catch (IOException e) {
                         e.printStackTrace();
                         Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Could not initialize BluetoothConnection", Toast.LENGTH_LONG).show();
@@ -218,6 +257,14 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
         //Set progress between 1-99 to get the refreshing look.
         this.activeButton.setProgress(50);
 
+    }
+
+    private class ControlModuleListActivityStarter implements Runnable {
+
+        @Override
+        public void run() {
+            startControlModuleListActivity();
+        }
     }
 
     private void listDevicesForVM(ArrayAdapter<String> aa) {

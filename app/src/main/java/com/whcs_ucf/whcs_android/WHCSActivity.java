@@ -78,9 +78,6 @@ public class WHCSActivity extends AppCompatActivity {
     }
 
     protected void initIssuerAndListener(BluetoothDevice device) throws IOException {
-        if(!DebugFlags.DEBUG_BLUETOOTH_COMM_PIPELINE) {
-            throw new Error("Not yet implemented for actual communication.");
-        }
         if(this.issuerAndListenerInitialized) {
             throw new Error("Tried to initialize an already initialized issuer and listener.");
         }
@@ -97,9 +94,6 @@ public class WHCSActivity extends AppCompatActivity {
     }
 
     protected void refreshIssuerAndListener() {
-        if(!DebugFlags.DEBUG_BLUETOOTH_COMM_PIPELINE) {
-            throw new Error("Not yet implemented for actual communication.");
-        }
         if(!this.issuerAndListenerInitialized) {
             throw new Error("Must initialize issuer and listener before refreshing them.");
         }
@@ -115,7 +109,6 @@ public class WHCSActivity extends AppCompatActivity {
         whcsBluetoothListener = WHCSBluetoothListener.GetSingletonBluetoothListener(whcsIssuer);
         whcsIssuer.stop();
         whcsBluetoothListener.stop();
-        whcsBluetoothListener.closeSocket();
         issuerAndListenerInitialized = false;
     }
 

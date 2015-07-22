@@ -33,6 +33,7 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
     private boolean shouldStop;
     private static WHCSBluetoothListener SingletonWHCSBluetoothListener;
     private static Thread ListenerThread;
+    private ConnectThread connectThread;
 
     private WHCSBluetoothListener() {
         this.responseParser = new WHCSResponse.WHCSResponseParser();
@@ -53,8 +54,6 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
     public static WHCSBluetoothListener GetSingletonCommandIssuer() {
         if(SingletonWHCSBluetoothListener == null) {
             SingletonWHCSBluetoothListener = new WHCSBluetoothListener();
-            ListenerThread = new Thread(SingletonWHCSBluetoothListener);
-            ListenerThread.start();
         }
         return SingletonWHCSBluetoothListener;
     }
@@ -62,25 +61,31 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
     public static WHCSBluetoothListener GetSingletonBluetoothListener(CommandIssuer responseHandler) {
         if(SingletonWHCSBluetoothListener == null) {
             SingletonWHCSBluetoothListener = new WHCSBluetoothListener(responseHandler);
-            new Thread(SingletonWHCSBluetoothListener).start();
         }
         return SingletonWHCSBluetoothListener;
     }
 
-    public static WHCSBluetoothListener GetSingletonBluetoothListener(BluetoothDevice btDevice, CommandIssuer responseHandler) throws IOException {
-        if(SingletonWHCSBluetoothListener == null) {
-            SingletonWHCSBluetoothListener = new WHCSBluetoothListener(responseHandler);
+    public void start(BluetoothDevice btDevice,final ConnectionMadeCallback cb) throws IOException{
+        if(SingletonWHCSBluetoothListener.socket == null || !SingletonWHCSBluetoothListener.socket.isConnected()) {
+            if(ListenerThread != null && ListenerThread.isAlive()) {
+                SingletonWHCSBluetoothListener.stop();
+            }
             SingletonWHCSBluetoothListener.setupBluetoothSocketFromDevice(btDevice);
-            try {
-                SingletonWHCSBluetoothListener.socket.connect();
-            }
-            catch(IOException e) {
-                SingletonWHCSBluetoothListener = null;
-                throw e;
-            }
-            new Thread(SingletonWHCSBluetoothListener).start();
+
+            SingletonWHCSBluetoothListener.asynchConnect(new ConnectionMadeCallback() {
+                @Override
+                public void onSuccessfulConnection() {
+                    ListenerThread = new Thread(SingletonWHCSBluetoothListener);
+                    ListenerThread.start();
+                    cb.onSuccessfulConnection();
+                }
+
+                @Override
+                public void onTimeoutConnection() {
+                    cb.onTimeoutConnection();
+                }
+            });
         }
-        return SingletonWHCSBluetoothListener;
     }
 
     public void run() {
@@ -110,10 +115,60 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
     }
 
     public void stop() {
+        if(connectThread != null && connectThread.isAlive()) {
+            connectThread.setShouldStop();
+            try {
+                this.socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            connectThread = null;
+        }
         this.shouldStop = true;
         this.closeSocket();
         SingletonWHCSBluetoothListener = null;
     }
+
+    private void asynchConnect(final ConnectionMadeCallback cb) {
+        connectThread = new ConnectThread(cb);
+        connectThread.start();
+    }
+
+    private class ConnectThread extends Thread {
+        private boolean shouldStop;
+        private ConnectionMadeCallback cb;
+
+        ConnectThread(ConnectionMadeCallback cb) {
+            this.cb = cb;
+            this.shouldStop = false;
+        }
+
+        @Override
+        public void run() {
+            try {
+                Log.d("WHCS-UCF", "connecting to "+ SingletonWHCSBluetoothListener.socket.getRemoteDevice().toString());
+                SingletonWHCSBluetoothListener.socket.connect();
+                Log.d("WHCS-UCF", "connected");
+                if(!this.shouldStop) {
+                    this.cb.onSuccessfulConnection();
+                } else if(SingletonWHCSBluetoothListener.socket != null) {
+                    SingletonWHCSBluetoothListener.socket.close();
+                }
+            }
+            catch(IOException e) {
+                SingletonWHCSBluetoothListener = null;
+                e.printStackTrace();
+                Log.d("WHCS-UCF", e.toString());
+                if(!this.shouldStop) {
+                    this.cb.onTimeoutConnection();
+                }
+            }
+        }
+
+        public void setShouldStop() {
+            this.shouldStop = true;
+        }
+    };
 
     public boolean isConnected() {
         return socket.isConnected();
@@ -136,6 +191,9 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
 
     private void setupBluetoothSocketFromDevice(BluetoothDevice device) throws IOException {
         this.mostRecentDevice = device;
+        if(this.socket != null) {
+            this.closeSocket();
+        }
         this.socket = device.createInsecureRfcommSocketToServiceRecord(WHCSActivity.WHCS_BLUETOOTH_UUID);
     }
 

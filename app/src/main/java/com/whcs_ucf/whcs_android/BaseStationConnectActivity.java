@@ -186,31 +186,36 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
                         e.printStackTrace();
                     }
                 } else {
-                    try {
-                        Log.d("WHCS-UCF", "beginning to initialize issuer and listener.");
-                        BaseStationConnectActivity.this.cancelDiscovery();
-                        if(issuerAndListenerInitialized) {
-                            destroyIssuerAndListener();
-                            Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Retry in 1 second.", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                        BaseStationConnectActivity.this.initIssuerAndListener(activeArrayAdapter.getItem(position));
-                        BaseStationConnectActivity.this.whcsIssuer.queueCommand(WHCSCommand.CreateQueryIfBaseStationCommand(), new ClientCallback() {
-                            @Override
-                            public void onResponse(WHCSResponse response) {
-                                Log.d("WHCS-UCF", "It' the base station.");
-                                asynchronousActivityStartHandler.post(new ControlModuleListActivityStarter());
-                            }
-
-                            @Override
-                            public void onTimeOut() {
-                                Log.d("WHCS-UCF", "Timeout trying to connect to base station.");
-                            }
-                        });
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Could not initialize BluetoothConnection", Toast.LENGTH_LONG).show();
+                    Log.d("WHCS-UCF", "beginning to initialize issuer and listener.");
+                    BaseStationConnectActivity.this.cancelDiscovery();
+                    if(issuerAndListenerInitialized) {
+                        destroyIssuerAndListener();
+                        Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Retry in 1 second.", Toast.LENGTH_SHORT).show();
+                        return;
                     }
+                    BaseStationConnectActivity.this.asynchInitIssuerAndListener(activeArrayAdapter.getItem(position), new ConnectionMadeCallback() {
+                        @Override
+                        public void onSuccessfulConnection() {
+                            BaseStationConnectActivity.this.whcsIssuer.queueCommand(WHCSCommand.CreateQueryIfBaseStationCommand(), new ClientCallback() {
+                                @Override
+                                public void onResponse(WHCSResponse response) {
+                                    Log.d("WHCS-UCF", "It' the base station.");
+                                    asynchronousActivityStartHandler.post(new ControlModuleListActivityStarter());
+                                }
+
+                                @Override
+                                public void onTimeOut() {
+                                    Log.d("WHCS-UCF", "Timeout trying to connect to base station.");
+                                    Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Could not initialize BluetoothConnection", Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        }
+                        @Override
+                        public void onTimeoutConnection() {
+                            Log.d("WHCS-UCF", "Asynch initialization of issuer and listener timed out.");
+                        }
+                    });
+
                 }
             }
         });
@@ -302,9 +307,12 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
         this.activeButton.setProgress(0);
     }
 
+
+
     @Override
     protected void onStop() {
         cancelDiscovery();
+        stopInitializerThread();
         super.onStop();
     }
 

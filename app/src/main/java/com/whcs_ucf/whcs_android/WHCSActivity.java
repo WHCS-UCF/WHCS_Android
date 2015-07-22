@@ -31,6 +31,7 @@ public class WHCSActivity extends AppCompatActivity {
     protected CommandIssuer whcsIssuer;
     protected WHCSBluetoothListener whcsBluetoothListener;
     protected BluetoothDevice baseStationDevice;
+    protected IssuerAndListenerInitializerThread initializerThread;
 
     //Holds state of whether or not the issuer and BlueToothListener duo have been initialized by
     //Giving the listener a BlueToothSocket
@@ -82,15 +83,85 @@ public class WHCSActivity extends AppCompatActivity {
             throw new Error("Tried to initialize an already initialized issuer and listener.");
         }
         whcsIssuer = CommandIssuer.GetSingletonCommandIssuer();
-        try {
-            whcsBluetoothListener = WHCSBluetoothListener.GetSingletonBluetoothListener(device, whcsIssuer);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw e;
-        }
+        whcsBluetoothListener = WHCSBluetoothListener.GetSingletonBluetoothListener(whcsIssuer);
+
         whcsIssuer.setCommandSender(whcsBluetoothListener);
         issuerAndListenerInitialized = true;
         Log.d("WHCS-UCF", "Initialized issuer and listener.");
+    }
+
+    protected void asynchInitIssuerAndListener(BluetoothDevice device, ConnectionMadeCallback cb) {
+        if(this.issuerAndListenerInitialized) {
+            throw new Error("Tried to initialize an already initialized issuer and listener.");
+        }
+        whcsIssuer = CommandIssuer.GetSingletonCommandIssuer();
+        if(initializerThread != null) {
+            if(initializerThread.isAlive()) {
+                Log.d("WHCS-UCF", "Attempting to stop the initializer thread.");
+                stopInitializerThread();
+                return;
+            }
+        }
+        initializerThread = new IssuerAndListenerInitializerThread(device, cb);
+        initializerThread.start();
+    }
+
+    private class IssuerAndListenerInitializerThread extends Thread {
+        private boolean shouldStop;
+        private BluetoothDevice device;
+        private ConnectionMadeCallback cb;
+
+        public IssuerAndListenerInitializerThread(BluetoothDevice device, ConnectionMadeCallback cb) {
+            this.device = device;
+            this.cb = cb;
+            this.shouldStop = false;
+        }
+
+        @Override
+        public void run() {
+
+            whcsBluetoothListener = WHCSBluetoothListener.GetSingletonBluetoothListener(whcsIssuer);
+            try {
+                whcsBluetoothListener.start(device, new ConnectionMadeCallback() {
+                    @Override
+                    public void onSuccessfulConnection() {
+                        whcsIssuer.setCommandSender(whcsBluetoothListener);
+                        issuerAndListenerInitialized = true;
+                        Log.d("WHCS-UCF", "Initialized issuer and listener.");
+                        if(!IssuerAndListenerInitializerThread.this.shouldStop) {
+                            cb.onSuccessfulConnection();
+                        }
+                    }
+
+                    @Override
+                    public void onTimeoutConnection() {
+                        if(!IssuerAndListenerInitializerThread.this.shouldStop) {
+                            cb.onTimeoutConnection();
+                        }
+                    }
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+                cb.onTimeoutConnection();
+                return;
+            }
+        }
+
+        public void setShouldStopTrue() {
+            shouldStop = true;
+            if(whcsBluetoothListener != null) {
+                whcsBluetoothListener.stop();
+            }
+        }
+    }
+
+    protected void stopInitializerThread() {
+        if(initializerThread != null) {
+            if(initializerThread.isAlive()) {
+                initializerThread.setShouldStopTrue();
+                initializerThread = null;
+            }
+        }
     }
 
     protected void refreshIssuerAndListener() {

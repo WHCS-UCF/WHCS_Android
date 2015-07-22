@@ -55,7 +55,10 @@ public class CommandIssuer implements Runnable, ResponseHandler {
         if(SingletonCommandIssuer == null) {
             SingletonCommandIssuer = new CommandIssuer();
             IssuerThread = new Thread(SingletonCommandIssuer);
-            IssuerThread.start();
+            if(!IssuerThread.isAlive()) {
+                IssuerThread.start();
+            }
+
         }
         return SingletonCommandIssuer;
     }
@@ -78,6 +81,7 @@ public class CommandIssuer implements Runnable, ResponseHandler {
         }
     }
 
+    synchronized
     private void issueCommandCallbackPair() {
         if (!this.outstandingCommands.isEmpty()) {
             if(this.commandSender == null) {

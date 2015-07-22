@@ -125,7 +125,9 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
             connectThread = null;
         }
         this.shouldStop = true;
-        this.closeSocket();
+        if(this.socket != null) {
+            this.closeSocket();
+        }
         SingletonWHCSBluetoothListener = null;
     }
 
@@ -156,7 +158,6 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
                 }
             }
             catch(IOException e) {
-                SingletonWHCSBluetoothListener = null;
                 e.printStackTrace();
                 Log.d("WHCS-UCF", e.toString());
                 if(!this.shouldStop) {

@@ -65,6 +65,15 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
         return SingletonWHCSBluetoothListener;
     }
 
+    /*
+    The start method of the WHCSBluetoothListener is what creates the thread that monitors a BluetoothSocket.
+    The start method has the task of getting the socket from a BluetoothDevice object and then connecting
+    to that device. The connect call for a BluetoothSocket is blocking. In order to prevent other things from
+    blocking the start function calls the asynchConnect method offered by WHCSBluetoothListener. This function
+    was designed to create a ConnectThread that could asynchronously connect to the socket and then call a
+    callback function when the socket was succesfully connected to. If the socket timesout or has some sort of
+    an error, the callback has a method for handling that.
+     */
     public void start(BluetoothDevice btDevice,final ConnectionMadeCallback cb) throws IOException{
         if(SingletonWHCSBluetoothListener.socket == null || !SingletonWHCSBluetoothListener.socket.isConnected()) {
             if(ListenerThread != null && ListenerThread.isAlive()) {
@@ -131,6 +140,15 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
         SingletonWHCSBluetoothListener = null;
     }
 
+    /*
+    Creates an instance of the ConnectThread class in order to try to connect to a bluetoothsocket.
+    It is possible that while this is taking place that a caller may want to connect to a different socket.
+    To do this the caller should first perform the shouldStop() call on the existing ConnectThread and then
+    another ConnectThread can be created. If the shouldStop() function is called on a connect thread it will
+    not call any of its callback functions because its execution path should be halted. There is no way to
+    stop the ConnectThread while it is blocking on the connect() call, so preventing it from operating any
+    further is the accpetable work around.
+     */
     private void asynchConnect(final ConnectionMadeCallback cb) {
         connectThread = new ConnectThread(cb);
         connectThread.start();

@@ -90,6 +90,17 @@ public class WHCSActivity extends AppCompatActivity {
         Log.d("WHCS-UCF", "Initialized issuer and listener.");
     }
 
+
+    /*
+    asynchInitIssuerAndListener exists to prevent the GUI thread from being blocked whenever the application
+    is trying to connect to the base station. The caller of this function will be starting a thread that sets up
+    the WHCSCommandIssuer and the WHCSBluetoothListener. The CommandIssuer is created before the new initializer
+    thread is started because creating the issuer is not blocking at all. The main reason the thread is created
+    is to solve the problem that comes with the BluetoothListeners need to connect to a bluetooth socket.
+    The thread begins and gets the WHCSBluetoothListener, it then tries to start it. A callback function is passed
+    to the WHCSBluetoothListeners start method in order to act upon whether or not the WHCSBluetoothListener was able
+    to start & connect on the BluetoothDevice's socket.
+     */
     protected void asynchInitIssuerAndListener(BluetoothDevice device, ConnectionMadeCallback cb) {
         if(this.issuerAndListenerInitialized) {
             throw new Error("Tried to initialize an already initialized issuer and listener.");

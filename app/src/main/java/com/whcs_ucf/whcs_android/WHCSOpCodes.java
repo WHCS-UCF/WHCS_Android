@@ -78,7 +78,7 @@ public class WHCSOpCodes {
                 return WHCSResponse.ResponseType.BYTE_RESULT;
 
             case CONTROL_MODULES_CHANGED:
-                return WHCSResponse.ResponseType.BYTE_RESULT;
+                return WHCSResponse.ResponseType.NO_RESULT;
 
             default:
                 return WHCSResponse.ResponseType.BYTE_RESULT;

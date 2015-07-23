@@ -1,11 +1,9 @@
 package com.whcs_ucf.whcs_android;
 
-import android.os.Looper;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Created by Jimmy on 6/15/2015.
@@ -38,6 +36,7 @@ public class CommandIssuer implements Runnable, ResponseHandler {
     private LinkedList<CommandCallbackPair> outstandingCommands;
     private CommandCallbackPair currentCommand;
     private CommandSender commandSender;
+    private PipelineErrorHandler pipelineErrorHandler;
     private ArrayList<PushFromBaseStationHandler> pushHandlerList;
     //Used to tell the issuer when to stop. It always checks if it needs to stop.
     private boolean shouldStop;
@@ -71,11 +70,13 @@ public class CommandIssuer implements Runnable, ResponseHandler {
             }
             if (!this.commandIsOutgoing) {
                 if (!this.outstandingCommands.isEmpty()) {
+                    Log.d("WHCS-UCF", "Thread ID: " + Thread.currentThread().getId() +" is now issuing a command in the CommandIssuer.");
                     this.issueCommandCallbackPair();
                 }
             }
 
             if (this.commandIsOutgoing && ((System.currentTimeMillis() - this.lastCommandIssueTime) > this.timeoutLength)) {
+                Log.d("WHCS-UCF", "Issuer is timing out a command.");
                 timeoutCurrentCommand();
             }
         }
@@ -92,7 +93,15 @@ public class CommandIssuer implements Runnable, ResponseHandler {
             this.lastCommandIssueTime = System.currentTimeMillis();
             this.currentCommand.getCallback().onSentOut();
 
-            this.commandSender.sendOutCommand(this.currentCommand.getCommand());
+            try {
+                this.commandSender.sendOutCommand(this.currentCommand.getCommand());
+            } catch (Exception e) {
+                e.printStackTrace();
+                if(this.pipelineErrorHandler != null) {
+                    this.shouldStop = true;
+                    this.pipelineErrorHandler.onCommunicationPipelineError();
+                }
+            }
         }
     }
 
@@ -116,7 +125,13 @@ public class CommandIssuer implements Runnable, ResponseHandler {
         this.lastCommandIssueTime = System.currentTimeMillis();
         this.currentCommand.getCallback().onSentOut();
 
-        this.commandSender.sendOutCommand(debugCommand);
+        try {
+            this.commandSender.sendOutCommand(debugCommand);
+        } catch (Exception e) {
+            this.shouldStop = true;
+            this.pipelineErrorHandler.onCommunicationPipelineError();
+            e.printStackTrace();
+        }
     }
 
     public void queueQueryBaseStationCommand(ClientCallback cb) {
@@ -129,7 +144,13 @@ public class CommandIssuer implements Runnable, ResponseHandler {
         this.lastCommandIssueTime = System.currentTimeMillis();
         this.currentCommand.getCallback().onSentOut();
 
-        this.commandSender.sendOutCommand(debugCommand);
+        try {
+            this.commandSender.sendOutCommand(debugCommand);
+        } catch (Exception e) {
+            this.shouldStop = true;
+            this.pipelineErrorHandler.onCommunicationPipelineError();
+            e.printStackTrace();
+        }
     }
 
     public void handleResponse(WHCSResponse response) {
@@ -138,7 +159,7 @@ public class CommandIssuer implements Runnable, ResponseHandler {
             this.currentCommand = null;
             this.commandIsOutgoing = false;
         }
-        else {
+        else if(response.getRefId() == 0x00) {
             for(PushFromBaseStationHandler handler : pushHandlerList) {
                 handler.onPush(response);
             }
@@ -148,6 +169,10 @@ public class CommandIssuer implements Runnable, ResponseHandler {
     public void stop() {
         this.shouldStop = true;
         this.SingletonCommandIssuer = null;
+    }
+
+    public void setPipelineErrorHandler(PipelineErrorHandler pipelineErrorHandler) {
+        this.pipelineErrorHandler = pipelineErrorHandler;
     }
 
     public void setCommandSender(CommandSender sender) {

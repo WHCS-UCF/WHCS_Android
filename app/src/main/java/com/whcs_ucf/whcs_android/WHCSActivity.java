@@ -19,7 +19,7 @@ import java.util.UUID;
 /**
  * Created by Jimmy on 6/4/2015.
  */
-public class WHCSActivity extends AppCompatActivity {
+public class WHCSActivity extends AppCompatActivity implements PipelineErrorHandler {
     public static final String TAG_MAC_STRING = "macString";
     // Well known SPP UUID
     //This SPP is a property of the bluetooth module.
@@ -181,6 +181,7 @@ public class WHCSActivity extends AppCompatActivity {
         }
         whcsIssuer = CommandIssuer.GetSingletonCommandIssuer();
         whcsBluetoothListener = WHCSBluetoothListener.GetSingletonBluetoothListener(whcsIssuer);
+        whcsIssuer.setPipelineErrorHandler(this);
     }
 
     protected void destroyIssuerAndListener() {
@@ -195,11 +196,21 @@ public class WHCSActivity extends AppCompatActivity {
     }
 
     protected void saveBaseStationDeviceForStop() {
-        mPrefs.edit().putString(TAG_MAC_STRING, whcsBluetoothListener.getBluetoothDevice().getAddress());
+        mPrefs.edit().putString(TAG_MAC_STRING, whcsBluetoothListener.getBluetoothDevice().getAddress()).commit();
     }
 
     protected BluetoothDevice loadBaseStationDeviceForStop() {
-        return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(mPrefs.getString(this.TAG_MAC_STRING,""));
+        String addressString = mPrefs.getString(this.TAG_MAC_STRING, "");
+        if(!addressString.equals("")) {
+            return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressString);
+        }
+        return null;
+    }
+
+    @Override
+    public void onCommunicationPipelineError() {
+        destroyIssuerAndListener();
+        finish();
     }
 
     @Override

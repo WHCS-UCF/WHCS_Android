@@ -251,7 +251,7 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
     }
 
     @Override
-    public void sendOutCommand(WHCSCommand command) {
+    public void sendOutCommand(WHCSCommand command) throws Exception{
         if(DebugFlags.DEBUG_BLUETOOTH_COMM_PIPELINE) {
             performDebugResponseRead();
             return;
@@ -264,7 +264,7 @@ public class WHCSBluetoothListener implements Runnable, CommandSender {
             } catch (IOException e) {
                 e.printStackTrace();
                 Log.d("WHCS-UCF", "Exception: " + e.getStackTrace().toString());
-                throw new Error("Couldn't get the outputstream in BluetoothListener for sending out command");
+                throw e;
             }
         }
     }

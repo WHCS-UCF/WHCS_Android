@@ -57,6 +57,9 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
         this.setupButtonListeners();
         //sets event listeners for clicking list items
         this.setupListListeners();
+        //Check to see if a Base Station has been connected to before.
+        //If one has, attempt to connect to it.
+        this.tryConnectToExistingBasestation();
     }
 
     @Override
@@ -193,30 +196,46 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
                         Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Retry in 1 second.", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    BaseStationConnectActivity.this.asynchInitIssuerAndListener(activeArrayAdapter.getItem(position), new ConnectionMadeCallback() {
-                        @Override
-                        public void onSuccessfulConnection() {
-                            BaseStationConnectActivity.this.whcsIssuer.queueCommand(WHCSCommand.CreateQueryIfBaseStationCommand(), new ClientCallback() {
-                                @Override
-                                public void onResponse(WHCSResponse response) {
-                                    Log.d("WHCS-UCF", "It' the base station.");
-                                    asynchronousActivityStartHandler.post(new ControlModuleListActivityStarter());
-                                }
-
-                                @Override
-                                public void onTimeOut() {
-                                    Log.d("WHCS-UCF", "Timeout trying to connect to base station.");
-                                    Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Could not initialize BluetoothConnection", Toast.LENGTH_LONG).show();
-                                }
-                            });
-                        }
-                        @Override
-                        public void onTimeoutConnection() {
-                            Log.d("WHCS-UCF", "Asynch initialization of issuer and listener timed out.");
-                        }
-                    });
-
+                    performAsynchInitialization(activeArrayAdapter.getItem(position));
                 }
+            }
+        });
+    }
+
+    private void tryConnectToExistingBasestation() {
+        if(loadBaseStationDeviceForStop() != null) {
+            performAsynchInitialization(loadBaseStationDeviceForStop());
+        }
+    }
+
+    private void performAsynchInitialization(BluetoothDevice device) {
+        BaseStationConnectActivity.this.asynchInitIssuerAndListener(device, new ConnectionMadeCallback() {
+            @Override
+            public void onSuccessfulConnection() {
+                BaseStationConnectActivity.this.whcsIssuer.queueCommand(WHCSCommand.CreateQueryIfBaseStationCommand(), new ClientCallback() {
+                    @Override
+                    public void onResponse(WHCSResponse response) {
+                        Log.d("WHCS-UCF", "It' the base station.");
+                        saveBaseStationDeviceForStop();
+                        asynchronousActivityStartHandler.post(new ControlModuleListActivityStarter());
+                    }
+
+                    @Override
+                    public void onTimeOut() {
+                        Log.d("WHCS-UCF", "Timeout trying to connect to base station.");
+                        if(whcsIssuer != null) {
+                            whcsIssuer.stop();
+                        }
+                        if(whcsBluetoothListener != null) {
+                            whcsBluetoothListener.stop();
+                        }
+                        //Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Could not initialize BluetoothConnection", Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+            @Override
+            public void onTimeoutConnection() {
+                Log.d("WHCS-UCF", "Asynch initialization of issuer and listener timed out.");
             }
         });
     }

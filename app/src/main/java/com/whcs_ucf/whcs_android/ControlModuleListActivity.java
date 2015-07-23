@@ -17,7 +17,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 
-public class ControlModuleListActivity extends WHCSActivityWithCleanup implements PushFromBaseStationHandler {
+public class ControlModuleListActivity extends WHCSActivityWithCleanup implements PushFromBaseStationHandler, PipelineErrorHandler {
     protected static final int REQUEST_OK = 1;
     public static final String TAG_BLUETOOTHADDRESS = "bt_address";
 
@@ -181,8 +181,19 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
     @Override
     public void onPush(WHCSResponse response) {
         Log.d("WHCS-UCF", "Received push event from base station.");
-        //GUIEventLoopHandler.post(new ToggleUpdater());
-        Log.d("WHCS-UCF", "Posted event to handler.");
+        routePushResponse(response);
+        Log.d("WHCS-UCF", "Routed push event according to ControlModuleListActivity's design.");
+    }
+
+    private void routePushResponse(WHCSResponse response) {
+        switch(response.getOpcode()) {
+            case WHCSOpCodes.CONTROL_MODULES_CHANGED:
+                //This is the case for CONTROL_MODULES_CHANGED
+                getControlModuleStatuses();
+                break;
+            default:
+                break;
+        }
     }
 
     private void startControlModuleDetailsActivity(ControlModule cm) {
@@ -190,6 +201,7 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
         intent.putExtra(ControlModuleDetailsActivity.TAG_CONTROLMODULE, cm);
         this.startActivity(intent);
     }
+
 
     private class ToggleUpdater implements Runnable {
         @Override

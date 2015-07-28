@@ -87,13 +87,28 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
                 if (isChecked) {
                     opCode = WHCSOpCodes.TURN_ON_MODULE;
                 }
+                if(cm instanceof ToggleableControlModule) {
+                    ((ToggleableControlModule) cm).toggle();
+                }
+                sendOutOnOffCommandToListedControlModule(opCode, cm);
+            }
+        });
+    }
 
-                ControlModuleListActivity.this.whcsIssuer.queueCommand(new WHCSCommand(opCode, cm.getIdentityNumber()), new ClientCallback() {
-                    @Override
-                    public void onResponse(WHCSResponse response) {
+    private void sendOutOnOffCommandToListedControlModule(byte opCode, ControlModule cm) {
 
-                    }
-                });
+        ControlModuleListActivity.this.whcsIssuer.queueCommand(new WHCSCommand(opCode, cm.getIdentityNumber()), new ClientCallback() {
+            @Override
+            public void onResponse(final WHCSResponse response) {
+                if(response.getOpcode() == WHCSOpCodes.ERROR_WITH_RESULT) {
+                    ControlModuleListActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ControlModuleListActivity.this.controlModuleAdapter.getItem(response.getControlTarget()).updateStatus(response.getResponseByte());
+                            controlModuleAdapter.notifyDataSetChanged();
+                        }
+                    });
+                }
             }
         });
     }
@@ -150,12 +165,7 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
                 for(ControlModule cm : speechCommand.getTargetList()) {
                     ToggleableControlModule.ToggleableState state = (speechCommand.getCommandOpCode() == WHCSOpCodes.TURN_OFF_MODULE) ? ToggleableControlModule.ToggleableState.OFF : ToggleableControlModule.ToggleableState.ON;
                     this.changeStateToggleableControlModule(cm.getIdentityNumber(), state);
-                    this.whcsIssuer.queueCommand(new WHCSCommand(speechCommand.getCommandOpCode(), cm.getIdentityNumber()), new ClientCallback() {
-                        @Override
-                        public void onResponse(WHCSResponse response) {
-
-                        }
-                    });
+                    sendOutOnOffCommandToListedControlModule(speechCommand.getCommandOpCode(), cm);
                 }
             }
             //Toast.makeText(ControlModuleListActivity.this, "You said " + sb.toString() + ".", Toast.LENGTH_LONG).show();

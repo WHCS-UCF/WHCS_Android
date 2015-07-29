@@ -34,7 +34,7 @@
         android:background="@color/primary"
         android:id="@+id/linearLayoutGroups">
 
-        <Button
+        <com.whcs_ucf.whcs_android.ToggleableButton
             android:layout_width="30dp"
             android:layout_height="wrap_content"
             android:background="@drawable/whcs_group_button_selector"
@@ -44,7 +44,7 @@
             android:textColor="@color/white"
             android:text="@string/n1"
             android:id="@+id/groupButton1" />
-        <Button
+        <com.whcs_ucf.whcs_android.ToggleableButton
             android:layout_width="30dp"
             android:layout_height="wrap_content"
             android:background="@drawable/whcs_group_button_selector"
@@ -54,7 +54,7 @@
             android:textColor="@color/white"
             android:text="@string/n2"
             android:id="@+id/groupButton2" />
-        <Button
+        <com.whcs_ucf.whcs_android.ToggleableButton
             android:layout_width="30dp"
             android:layout_height="wrap_content"
             android:background="@drawable/whcs_group_button_selector"
@@ -64,7 +64,7 @@
             android:textColor="@color/white"
             android:text="@string/n3"
             android:id="@+id/groupButton3" />
-        <Button
+        <com.whcs_ucf.whcs_android.ToggleableButton
             android:layout_width="30dp"
             android:layout_height="wrap_content"
             android:background="@drawable/whcs_group_button_selector"
@@ -74,7 +74,7 @@
             android:textColor="@color/white"
             android:text="@string/n4"
             android:id="@+id/groupButton4" />
-        <Button
+        <com.whcs_ucf.whcs_android.ToggleableButton
             android:layout_width="30dp"
             android:layout_height="wrap_content"
             android:background="@drawable/whcs_group_button_selector"
@@ -84,7 +84,7 @@
             android:textColor="@color/white"
             android:text="@string/n5"
             android:id="@+id/groupButton5" />
-        <Button
+        <com.whcs_ucf.whcs_android.ToggleableButton
             android:layout_width="30dp"
             android:layout_height="wrap_content"
             android:background="@drawable/whcs_group_button_selector"

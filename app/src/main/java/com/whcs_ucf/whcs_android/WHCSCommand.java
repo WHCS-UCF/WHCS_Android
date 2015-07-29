@@ -72,6 +72,8 @@ public class WHCSCommand implements Comparable<WHCSCommand> {
         return refId;
     }
 
+    public byte getOpCode() { return opCode; }
+
     public static WHCSCommand CreateGetBaseStationStatusDEBUGCommand() {
         return new WHCSCommand((byte)0x00, WHCSOpCodes.GET_STATUS_OF_BASE_STATION, (byte)0x00);
     }

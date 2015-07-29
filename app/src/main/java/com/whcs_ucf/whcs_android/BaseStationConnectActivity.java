@@ -177,11 +177,11 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
                         BaseStationConnectActivity.this.initIssuerAndListener(activeArrayAdapter.getItem(position));
                         BaseStationConnectActivity.this.whcsIssuer.queueCommand(WHCSCommand.CreateQueryIfBaseStationCommand(), new ClientCallback() {
                             @Override
-                            public void onResponse(WHCSResponse response) {
+                            public void onResponse(WHCSCommand command, WHCSResponse response) {
                                 Log.d("WHCS-UCF", "It' the base station.");
                             }
                             @Override
-                            public void onTimeOut() {
+                            public void onTimeOut(WHCSCommand command) {
                                 Log.d("WHCS-UCF", "Timeout trying to connect to base station.");
                             }
                         });
@@ -214,14 +214,14 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
             public void onSuccessfulConnection() {
                 BaseStationConnectActivity.this.whcsIssuer.queueCommand(WHCSCommand.CreateQueryIfBaseStationCommand(), new ClientCallback() {
                     @Override
-                    public void onResponse(WHCSResponse response) {
+                    public void onResponse(WHCSCommand command, WHCSResponse response) {
                         Log.d("WHCS-UCF", "It' the base station.");
                         saveBaseStationDeviceForStop();
                         asynchronousActivityStartHandler.post(new ControlModuleListActivityStarter());
                     }
 
                     @Override
-                    public void onTimeOut() {
+                    public void onTimeOut(WHCSCommand command) {
                         Log.d("WHCS-UCF", "Timeout trying to connect to base station.");
                         if(whcsIssuer != null) {
                             whcsIssuer.stop();

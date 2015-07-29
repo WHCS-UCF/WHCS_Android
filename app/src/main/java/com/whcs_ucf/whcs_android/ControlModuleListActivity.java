@@ -23,6 +23,12 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
 
     private Button speechButton;
     private Button editButton;
+    private ToggleableButton groupButton1;
+    private ToggleableButton groupButton2;
+    private ToggleableButton groupButton3;
+    private ToggleableButton groupButton4;
+    private ToggleableButton groupButton5;
+    private ToggleableButton groupButton6;
     private ListView controlModuleListView;
     private ControlModuleAdapter controlModuleAdapter;
     private Handler GUIEventLoopHandler;
@@ -69,6 +75,12 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
         this.speechButton = (Button)findViewById(R.id.speechButton);
         this.editButton = (Button)findViewById(R.id.editButton);
         this.controlModuleListView = (ListView)findViewById(R.id.controlModulesListView);
+        this.groupButton1 = (ToggleableButton) findViewById(R.id.groupButton1);
+        this.groupButton2 = (ToggleableButton) findViewById(R.id.groupButton2);
+        this.groupButton3 = (ToggleableButton) findViewById(R.id.groupButton3);
+        this.groupButton4 = (ToggleableButton) findViewById(R.id.groupButton4);
+        this.groupButton5 = (ToggleableButton) findViewById(R.id.groupButton5);
+        this.groupButton6 = (ToggleableButton) findViewById(R.id.groupButton6);
 
         this.controlModuleAdapter = new ControlModuleAdapter(this, R.layout.control_module_list_row);
         this.controlModuleListView.setAdapter(controlModuleAdapter);
@@ -87,20 +99,38 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
                 if (isChecked) {
                     opCode = WHCSOpCodes.TURN_ON_MODULE;
                 }
-                if(cm instanceof ToggleableControlModule) {
-                    ((ToggleableControlModule) cm).toggle();
-                }
                 sendOutOnOffCommandToListedControlModule(opCode, cm);
             }
         });
     }
 
     private void sendOutOnOffCommandToListedControlModule(byte opCode, ControlModule cm) {
+        sendOutOnOffCommandToListedControlModule(opCode, cm.getIdentityNumber());
+    }
 
-        ControlModuleListActivity.this.whcsIssuer.queueCommand(new WHCSCommand(opCode, cm.getIdentityNumber()), new ClientCallback() {
+    private void sendOutOnOffCommandToListedControlModule(byte opCode, final byte identityNumber) {
+        runOnUiThread(new Runnable() {
             @Override
-            public void onResponse(final WHCSResponse response) {
-                if(response.getOpcode() == WHCSOpCodes.ERROR_WITH_RESULT) {
+            public void run() {
+                controlModuleAdapter.notifyDataSetChanged();
+            }
+        });
+        ControlModuleListActivity.this.whcsIssuer.queueCommand(new WHCSCommand(opCode, identityNumber), new ClientCallback() {
+            @Override
+            public void onResponse(final WHCSCommand command, final WHCSResponse response) {
+                if(response.getOpcode() == WHCSOpCodes.SUCCESS_NO_RESULT || response.getOpcode() == WHCSOpCodes.SUCCESS_WITH_RESULT) {
+                    final ControlModule cm = ControlModuleListActivity.this.controlModuleAdapter.getItem(identityNumber);
+                    if(cm instanceof  ToggleableControlModule) {
+                        ControlModuleListActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ((ToggleableControlModule) cm).setStatus( ( command.getOpCode() == WHCSOpCodes.TURN_ON_MODULE ? ToggleableControlModule.ToggleableState.ON : ToggleableControlModule.ToggleableState.OFF ) );
+                                controlModuleAdapter.notifyDataSetChanged();
+                            }
+                        });
+                    }
+                }
+                if (response.getOpcode() == WHCSOpCodes.ERROR_WITH_RESULT) {
                     ControlModuleListActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -109,6 +139,19 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
                         }
                     });
                 }
+            }
+
+            @Override
+            public void onTimeOut(WHCSCommand timedOutCommand) {
+                ControlModuleListActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ControlModule cm = ControlModuleListActivity.this.controlModuleAdapter.getItem(identityNumber);
+                        if(cm instanceof  ToggleableControlModule) {
+
+                        }
+                    }
+                });
             }
         });
     }
@@ -132,6 +175,33 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
 
             }
         });
+        final ToggleableButton[] buttonArray = new ToggleableButton[] {groupButton1, groupButton2, groupButton3, groupButton4, groupButton5, groupButton6};
+        for(int i = 0; i < buttonArray.length; i++) {
+            buttonArray[i].setOnClickListener(new GroupButtonOnClickListener(i+1) {
+                @Override
+                public void onClick(View v) {
+                    changeStateOfControlModuleGroup(this.groupNumber, buttonArray[this.groupNumber-1].getIsOn());
+                }
+            });
+        }
+    }
+
+    private abstract class GroupButtonOnClickListener implements View.OnClickListener {
+        public int groupNumber;
+        GroupButtonOnClickListener(int groupNumber) {
+            this.groupNumber = groupNumber;
+        }
+    }
+
+    private void changeStateOfControlModuleGroup(int groupNumber, boolean turnOn) {
+        byte opCode = (turnOn == true ? WHCSOpCodes.TURN_ON_MODULE : WHCSOpCodes.TURN_OFF_MODULE);
+        DatabaseHandler dbHandler = new DatabaseHandler(this.getApplicationContext());
+        ArrayList<ControlModuleGrouping> controlModuleGroup = dbHandler.getControlModuleGroup(groupNumber);
+        for(ControlModuleGrouping grouping : controlModuleGroup) {
+            if( controlModuleAdapter.getItem(grouping.getControlModuleId()) instanceof ToggleableControlModule) {
+                sendOutOnOffCommandToListedControlModule(opCode, grouping.getControlModuleId());
+            }
+        }
     }
 
     private void setupListListener() {
@@ -163,12 +233,9 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
             if(speechCommand != null) {
                 Toast.makeText(ControlModuleListActivity.this.getApplicationContext(), "Recognized a command. "+speechCommand, Toast.LENGTH_LONG).show();
                 for(ControlModule cm : speechCommand.getTargetList()) {
-                    ToggleableControlModule.ToggleableState state = (speechCommand.getCommandOpCode() == WHCSOpCodes.TURN_OFF_MODULE) ? ToggleableControlModule.ToggleableState.OFF : ToggleableControlModule.ToggleableState.ON;
-                    this.changeStateToggleableControlModule(cm.getIdentityNumber(), state);
                     sendOutOnOffCommandToListedControlModule(speechCommand.getCommandOpCode(), cm);
                 }
             }
-            //Toast.makeText(ControlModuleListActivity.this, "You said " + sb.toString() + ".", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -261,7 +328,7 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
         for (int i = 0; i < controlModuleAdapter.getCount(); i++) {
             this.whcsIssuer.queueCommand(new WHCSCommand(WHCSOpCodes.GET_MODULE_STATUS, (byte) i), new ClientCallback() {
                 @Override
-                public void onResponse(WHCSResponse response) {
+                public void onResponse(WHCSCommand command, WHCSResponse response) {
                     ControlModuleListActivity.this.controlModuleAdapter.getItem(response.getControlTarget()).updateStatus(response.getResponseByte());
                     ControlModuleListActivity.this.runOnUiThread(new Runnable() {
                         @Override

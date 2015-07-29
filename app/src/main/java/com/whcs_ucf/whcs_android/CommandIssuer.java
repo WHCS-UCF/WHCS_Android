@@ -106,7 +106,7 @@ public class CommandIssuer implements Runnable, ResponseHandler {
     }
 
     private void timeoutCurrentCommand() {
-        this.currentCommand.getCallback().onTimeOut();
+        this.currentCommand.getCallback().onTimeOut(this.currentCommand.getCommand());
         this.currentCommand = null;
         this.commandIsOutgoing = false;
     }
@@ -155,7 +155,7 @@ public class CommandIssuer implements Runnable, ResponseHandler {
 
     public void handleResponse(WHCSResponse response) {
         if(currentCommand != null && response.getRefId() == currentCommand.getCommand().getRefId()) {
-            this.currentCommand.getCallback().onResponse(response);
+            this.currentCommand.getCallback().onResponse(this.currentCommand.getCommand(), response);
             this.currentCommand = null;
             this.commandIsOutgoing = false;
         }

@@ -180,7 +180,8 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
             buttonArray[i].setOnClickListener(new GroupButtonOnClickListener(i+1) {
                 @Override
                 public void onClick(View v) {
-                    changeStateOfControlModuleGroup(this.groupNumber, buttonArray[this.groupNumber-1].getIsOn());
+                    changeStateOfControlModuleGroup(this.groupNumber, buttonArray[this.groupNumber - 1].getIsOn());
+                    buttonArray[this.groupNumber-1].toggle();
                 }
             });
         }
@@ -253,6 +254,7 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
         controlModuleAdapter.add(new ToggleableControlModule(ControlModuleRole.DOOR_CONTROLLER, (byte) 0, databaseHandler));
         controlModuleAdapter.add(new ToggleableControlModule(ControlModuleRole.LIGHT_CONTROLLER, (byte) 1, databaseHandler));
         controlModuleAdapter.add(new DataCollectionControlModule(ControlModuleRole.SENSOR_COLLECTOR, (byte) 2, databaseHandler));
+        controlModuleAdapter.add(new ToggleableControlModule(ControlModuleRole.OUTLET_CONTROLLER, (byte) 3, databaseHandler));
     }
 
     @Override

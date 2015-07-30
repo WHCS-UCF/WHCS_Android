@@ -10,7 +10,7 @@ public class WHCSCommand implements Comparable<WHCSCommand> {
     /*
      * Used to keep refIds in commands unique. Incremented every time one is used.
      */
-    private static byte uniqueRefIdTracker = Byte.MIN_VALUE;
+    private static byte uniqueRefIdTracker = 0x01;
 
     private byte refId;
     private byte opCode;
@@ -54,8 +54,8 @@ public class WHCSCommand implements Comparable<WHCSCommand> {
     }
 
     private static void incrementRefIdTracker() {
-        if(uniqueRefIdTracker == Byte.MAX_VALUE) {
-            uniqueRefIdTracker = Byte.MIN_VALUE;
+        if(uniqueRefIdTracker == 0xEF) {
+            uniqueRefIdTracker = 0x01;
         }
         else {
             uniqueRefIdTracker++;
@@ -71,6 +71,8 @@ public class WHCSCommand implements Comparable<WHCSCommand> {
     public byte getRefId() {
         return refId;
     }
+
+    public byte getOpCode() { return opCode; }
 
     public static WHCSCommand CreateGetBaseStationStatusDEBUGCommand() {
         return new WHCSCommand((byte)0x00, WHCSOpCodes.GET_STATUS_OF_BASE_STATION, (byte)0x00);

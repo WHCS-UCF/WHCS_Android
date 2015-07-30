@@ -78,6 +78,8 @@ public class WHCSResponse {
         return this.refId;
     }
 
+    public byte getOpcode() { return this.opCode; }
+
     public byte getControlTarget() {
         return this.controlTarget;
     }

@@ -1,16 +1,16 @@
 package com.whcs_ucf.whcs_android;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
+import java.util.List;
 
 
 public class ControlModuleDetailsActivity extends WHCSActivity {
@@ -26,6 +26,7 @@ public class ControlModuleDetailsActivity extends WHCSActivity {
     private TextView roleIndicatorTextView;
     private TextView controlModuleTextView;
     private TextView statusIndicatorTextView;
+    private CheckBoxGroup checkBoxGroup;
     private ControlModule underlyingControlModule;
 
     @Override
@@ -77,30 +78,52 @@ public class ControlModuleDetailsActivity extends WHCSActivity {
         this.statusIndicatorTextView = (TextView) this.findViewById(R.id.statusIndicatorTextView);
     }
 
+    private void setupCheckBoxGroup() {
+        checkBoxGroup = new CheckBoxGroup();
+        checkBoxGroup.add( (CheckBox) this.findViewById(R.id.checkBox1) );
+        checkBoxGroup.add( (CheckBox) this.findViewById(R.id.checkBox2) );
+        checkBoxGroup.add( (CheckBox) this.findViewById(R.id.checkBox3) );
+        checkBoxGroup.add( (CheckBox) this.findViewById(R.id.checkBox4) );
+        checkBoxGroup.add( (CheckBox) this.findViewById(R.id.checkBox5) );
+        checkBoxGroup.add( (CheckBox) this.findViewById(R.id.checkBox6) );
+
+        DatabaseHandler dbHandler = new DatabaseHandler(this.getApplicationContext());
+        List<ControlModuleGrouping> cmGroupings = dbHandler.getSpecificControlModulesGroupings(this.underlyingControlModule);
+        if(cmGroupings != null) {
+            for(ControlModuleGrouping grouping : cmGroupings) {
+                // groupNumber - 1 because groupNumbers start at 1 but arraylist indexing starts
+                // at 0.
+                checkBoxGroup.get(grouping.getGroupNumber() - 1).setChecked(true);
+            }
+        }
+        checkBoxGroup.recordInitialState();
+    }
+
     private void setupGUIForControlModule() {
         this.controlModuleTextView.setText(this.underlyingControlModule.getName());
         this.statusIndicatorTextView.setText(this.underlyingControlModule.statusableGetString());
         this.roleIndicatorTextView.setText(this.underlyingControlModule.getRole().name());
+        this.changeNameEditText.setText(this.underlyingControlModule.getName());
+        this.setupCheckBoxGroup();
     }
 
     private void setupGUIEvents() {
         this.saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(ControlModuleDetailsActivity.this.underlyingControlModule.getName().equals(ControlModuleDetailsActivity.this.changeNameEditText.getText().toString())) {
-                    return;
-                }
-                Log.d("WHCS-UCF", "Changing name of Control Module: " + underlyingControlModule + " to: "+ changeNameEditText.getText().toString());
-                ControlModuleDetailsActivity.this.underlyingControlModule.setName(changeNameEditText.getText().toString());
-                ControlModule checkIfExistsCM;
                 DatabaseHandler dbHandler = new DatabaseHandler(ControlModuleDetailsActivity.this.getApplicationContext());
-                checkIfExistsCM = dbHandler.getControlModule(underlyingControlModule.getIdentityNumber());
-                if(checkIfExistsCM == null) {
+                if(!dbHandler.controlModuleExists(underlyingControlModule)) {
                     dbHandler.addControlModule(underlyingControlModule);
                 }
-                else {
+                if(!(ControlModuleDetailsActivity.this.underlyingControlModule.getName().equals(ControlModuleDetailsActivity.this.changeNameEditText.getText().toString()))) {
+                    Log.d("WHCS-UCF", "Changing name of Control Module: " + underlyingControlModule + " to: "+ changeNameEditText.getText().toString());
+                    ControlModuleDetailsActivity.this.underlyingControlModule.setName(changeNameEditText.getText().toString());
                     dbHandler.updateControlModule(underlyingControlModule);
                 }
+                if(checkBoxGroup.stateHasChanged()) {
+                    dbHandler.updateControlModulesGroupings(underlyingControlModule, checkBoxGroup.getCheckedIndexList(1));
+                }
+
                 finish();
             }
         });

@@ -51,7 +51,7 @@ public class DebugActivity extends WHCSActivity {
                 DebugActivity.this.refreshIssuerAndListener();
                 DebugActivity.this.whcsIssuer.queueDebugCommand(new ClientCallback() {
                     @Override
-                    public void onResponse(WHCSResponse response) {
+                    public void onResponse(WHCSCommand command, WHCSResponse response) {
                         Log.d("WHCS","Successfully completed communication pipeline.");
                     }
                 });

@@ -47,8 +47,8 @@ public class ToggleableControlModule extends ControlModule{
     }
 
     public enum ToggleableState {
-        ON,
-        OFF
+        OFF,
+        ON
     }
 
     @Override

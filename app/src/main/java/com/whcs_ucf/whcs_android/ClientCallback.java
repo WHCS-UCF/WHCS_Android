@@ -10,9 +10,9 @@ package com.whcs_ucf.whcs_android;
  */
 public abstract class ClientCallback {
 
-    public abstract void onResponse(WHCSResponse response);
+    public abstract void onResponse(WHCSCommand command, WHCSResponse response);
 
-    public void onTimeOut() {}
+    public void onTimeOut(WHCSCommand timedOutCommand) {}
 
     public void onSentOut() {}
 }

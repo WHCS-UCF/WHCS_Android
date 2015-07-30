@@ -28,4 +28,6 @@
     <string name="n4">4</string>
     <string name="n5">5</string>
     <string name="n6">6</string>
+    <string name="on">ON</string>
+    <string name="off">OFF</string>
 </resources>

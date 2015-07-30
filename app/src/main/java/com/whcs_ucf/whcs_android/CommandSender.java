@@ -5,6 +5,6 @@ package com.whcs_ucf.whcs_android;
  */
 public interface CommandSender {
 
-    public void sendOutCommand(WHCSCommand command);
+    public void sendOutCommand(WHCSCommand command) throws Exception;
 
 }

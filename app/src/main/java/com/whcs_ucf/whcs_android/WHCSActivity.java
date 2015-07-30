@@ -19,7 +19,7 @@ import java.util.UUID;
 /**
  * Created by Jimmy on 6/4/2015.
  */
-public class WHCSActivity extends AppCompatActivity {
+public class WHCSActivity extends AppCompatActivity implements PipelineErrorHandler {
     public static final String TAG_MAC_STRING = "macString";
     // Well known SPP UUID
     //This SPP is a property of the bluetooth module.
@@ -31,6 +31,7 @@ public class WHCSActivity extends AppCompatActivity {
     protected CommandIssuer whcsIssuer;
     protected WHCSBluetoothListener whcsBluetoothListener;
     protected BluetoothDevice baseStationDevice;
+    protected IssuerAndListenerInitializerThread initializerThread;
 
     //Holds state of whether or not the issuer and BlueToothListener duo have been initialized by
     //Giving the listener a BlueToothSocket
@@ -82,15 +83,96 @@ public class WHCSActivity extends AppCompatActivity {
             throw new Error("Tried to initialize an already initialized issuer and listener.");
         }
         whcsIssuer = CommandIssuer.GetSingletonCommandIssuer();
-        try {
-            whcsBluetoothListener = WHCSBluetoothListener.GetSingletonBluetoothListener(device, whcsIssuer);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw e;
-        }
+        whcsBluetoothListener = WHCSBluetoothListener.GetSingletonBluetoothListener(whcsIssuer);
+
         whcsIssuer.setCommandSender(whcsBluetoothListener);
         issuerAndListenerInitialized = true;
         Log.d("WHCS-UCF", "Initialized issuer and listener.");
+    }
+
+
+    /*
+    asynchInitIssuerAndListener exists to prevent the GUI thread from being blocked whenever the application
+    is trying to connect to the base station. The caller of this function will be starting a thread that sets up
+    the WHCSCommandIssuer and the WHCSBluetoothListener. The CommandIssuer is created before the new initializer
+    thread is started because creating the issuer is not blocking at all. The main reason the thread is created
+    is to solve the problem that comes with the BluetoothListeners need to connect to a bluetooth socket.
+    The thread begins and gets the WHCSBluetoothListener, it then tries to start it. A callback function is passed
+    to the WHCSBluetoothListeners start method in order to act upon whether or not the WHCSBluetoothListener was able
+    to start & connect on the BluetoothDevice's socket.
+     */
+    protected void asynchInitIssuerAndListener(BluetoothDevice device, ConnectionMadeCallback cb) {
+        if(this.issuerAndListenerInitialized) {
+            throw new Error("Tried to initialize an already initialized issuer and listener.");
+        }
+        whcsIssuer = CommandIssuer.GetSingletonCommandIssuer();
+        if(initializerThread != null) {
+            if(initializerThread.isAlive()) {
+                Log.d("WHCS-UCF", "Attempting to stop the initializer thread.");
+                stopInitializerThread();
+                return;
+            }
+        }
+        initializerThread = new IssuerAndListenerInitializerThread(device, cb);
+        initializerThread.start();
+    }
+
+    private class IssuerAndListenerInitializerThread extends Thread {
+        private boolean shouldStop;
+        private BluetoothDevice device;
+        private ConnectionMadeCallback cb;
+
+        public IssuerAndListenerInitializerThread(BluetoothDevice device, ConnectionMadeCallback cb) {
+            this.device = device;
+            this.cb = cb;
+            this.shouldStop = false;
+        }
+
+        @Override
+        public void run() {
+
+            whcsBluetoothListener = WHCSBluetoothListener.GetSingletonBluetoothListener(whcsIssuer);
+            try {
+                whcsBluetoothListener.start(device, new ConnectionMadeCallback() {
+                    @Override
+                    public void onSuccessfulConnection() {
+                        whcsIssuer.setCommandSender(whcsBluetoothListener);
+                        issuerAndListenerInitialized = true;
+                        Log.d("WHCS-UCF", "Initialized issuer and listener.");
+                        if(!IssuerAndListenerInitializerThread.this.shouldStop) {
+                            cb.onSuccessfulConnection();
+                        }
+                    }
+
+                    @Override
+                    public void onTimeoutConnection() {
+                        if(!IssuerAndListenerInitializerThread.this.shouldStop) {
+                            cb.onTimeoutConnection();
+                        }
+                    }
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+                cb.onTimeoutConnection();
+                return;
+            }
+        }
+
+        public void setShouldStopTrue() {
+            shouldStop = true;
+            if(whcsBluetoothListener != null) {
+                whcsBluetoothListener.stop();
+            }
+        }
+    }
+
+    protected void stopInitializerThread() {
+        if(initializerThread != null) {
+            if(initializerThread.isAlive()) {
+                initializerThread.setShouldStopTrue();
+                initializerThread = null;
+            }
+        }
     }
 
     protected void refreshIssuerAndListener() {
@@ -99,6 +181,7 @@ public class WHCSActivity extends AppCompatActivity {
         }
         whcsIssuer = CommandIssuer.GetSingletonCommandIssuer();
         whcsBluetoothListener = WHCSBluetoothListener.GetSingletonBluetoothListener(whcsIssuer);
+        whcsIssuer.setPipelineErrorHandler(this);
     }
 
     protected void destroyIssuerAndListener() {
@@ -113,11 +196,21 @@ public class WHCSActivity extends AppCompatActivity {
     }
 
     protected void saveBaseStationDeviceForStop() {
-        mPrefs.edit().putString(TAG_MAC_STRING, whcsBluetoothListener.getBluetoothDevice().getAddress());
+        mPrefs.edit().putString(TAG_MAC_STRING, whcsBluetoothListener.getBluetoothDevice().getAddress()).commit();
     }
 
     protected BluetoothDevice loadBaseStationDeviceForStop() {
-        return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(mPrefs.getString(this.TAG_MAC_STRING,""));
+        String addressString = mPrefs.getString(this.TAG_MAC_STRING, "");
+        if(!addressString.equals("")) {
+            return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(addressString);
+        }
+        return null;
+    }
+
+    @Override
+    public void onCommunicationPipelineError() {
+        destroyIssuerAndListener();
+        finish();
     }
 
     @Override

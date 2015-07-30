@@ -11,7 +11,9 @@ public class SpeechParser {
 
     protected static final String[] possibleCommands = new String[] {
         "on",
-        "off"
+        "off",
+        "unlock",
+        "lock"
     };
 
     protected static byte matchVerbToOpcode(String verb) {
@@ -19,6 +21,10 @@ public class SpeechParser {
             case "on":
                 return WHCSOpCodes.TURN_ON_MODULE;
             case "off":
+                return WHCSOpCodes.TURN_OFF_MODULE;
+            case "unlock":
+                return WHCSOpCodes.TURN_ON_MODULE;
+            case "lock":
                 return WHCSOpCodes.TURN_OFF_MODULE;
             default:
                 throw new Error("verb does not represent a valid opcode in speech parser.");

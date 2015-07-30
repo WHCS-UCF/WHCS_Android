@@ -28,6 +28,79 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:gravity="center"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_above="@id/linearLayout"
+        android:background="@color/primary"
+        android:id="@+id/linearLayoutGroups">
+
+        <com.whcs_ucf.whcs_android.ToggleableButton
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/whcs_group_button_selector"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/white"
+            android:text="@string/n1"
+            android:id="@+id/groupButton1" />
+        <com.whcs_ucf.whcs_android.ToggleableButton
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/whcs_group_button_selector"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/white"
+            android:text="@string/n2"
+            android:id="@+id/groupButton2" />
+        <com.whcs_ucf.whcs_android.ToggleableButton
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/whcs_group_button_selector"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/white"
+            android:text="@string/n3"
+            android:id="@+id/groupButton3" />
+        <com.whcs_ucf.whcs_android.ToggleableButton
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/whcs_group_button_selector"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/white"
+            android:text="@string/n4"
+            android:id="@+id/groupButton4" />
+        <com.whcs_ucf.whcs_android.ToggleableButton
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/whcs_group_button_selector"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/white"
+            android:text="@string/n5"
+            android:id="@+id/groupButton5" />
+        <com.whcs_ucf.whcs_android.ToggleableButton
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/whcs_group_button_selector"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/white"
+            android:text="@string/n6"
+            android:id="@+id/groupButton6" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:gravity="center"
         android:layout_height="70dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -66,7 +139,7 @@
         android:layout_below="@+id/controlModulesTextView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_above="@+id/linearLayout"
+        android:layout_above="@+id/linearLayoutGroups"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 

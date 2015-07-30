@@ -118,13 +118,13 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
         ControlModuleListActivity.this.whcsIssuer.queueCommand(new WHCSCommand(opCode, identityNumber), new ClientCallback() {
             @Override
             public void onResponse(final WHCSCommand command, final WHCSResponse response) {
-                if(response.getOpcode() == WHCSOpCodes.SUCCESS_NO_RESULT || response.getOpcode() == WHCSOpCodes.SUCCESS_WITH_RESULT) {
+                if (response.getOpcode() == WHCSOpCodes.SUCCESS_NO_RESULT || response.getOpcode() == WHCSOpCodes.SUCCESS_WITH_RESULT) {
                     final ControlModule cm = ControlModuleListActivity.this.controlModuleAdapter.getItem(identityNumber);
-                    if(cm instanceof  ToggleableControlModule) {
+                    if (cm instanceof ToggleableControlModule) {
                         ControlModuleListActivity.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                ((ToggleableControlModule) cm).setStatus( ( command.getOpCode() == WHCSOpCodes.TURN_ON_MODULE ? ToggleableControlModule.ToggleableState.ON : ToggleableControlModule.ToggleableState.OFF ) );
+                                ((ToggleableControlModule) cm).setStatus((command.getOpCode() == WHCSOpCodes.TURN_ON_MODULE ? ToggleableControlModule.ToggleableState.ON : ToggleableControlModule.ToggleableState.OFF));
                                 controlModuleAdapter.notifyDataSetChanged();
                             }
                         });
@@ -147,7 +147,7 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
                     @Override
                     public void run() {
                         ControlModule cm = ControlModuleListActivity.this.controlModuleAdapter.getItem(identityNumber);
-                        if(cm instanceof  ToggleableControlModule) {
+                        if (cm instanceof ToggleableControlModule) {
 
                         }
                     }
@@ -198,9 +198,11 @@ public class ControlModuleListActivity extends WHCSActivityWithCleanup implement
         byte opCode = (turnOn == true ? WHCSOpCodes.TURN_ON_MODULE : WHCSOpCodes.TURN_OFF_MODULE);
         DatabaseHandler dbHandler = new DatabaseHandler(this.getApplicationContext());
         ArrayList<ControlModuleGrouping> controlModuleGroup = dbHandler.getControlModuleGroup(groupNumber);
-        for(ControlModuleGrouping grouping : controlModuleGroup) {
-            if( controlModuleAdapter.getItem(grouping.getControlModuleId()) instanceof ToggleableControlModule) {
-                sendOutOnOffCommandToListedControlModule(opCode, grouping.getControlModuleId());
+        if(controlModuleGroup != null) {
+            for (ControlModuleGrouping grouping : controlModuleGroup) {
+                if (controlModuleAdapter.getItem(grouping.getControlModuleId()) instanceof ToggleableControlModule) {
+                    sendOutOnOffCommandToListedControlModule(opCode, grouping.getControlModuleId());
+                }
             }
         }
     }

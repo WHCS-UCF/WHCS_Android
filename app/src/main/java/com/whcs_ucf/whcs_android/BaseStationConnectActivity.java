@@ -34,7 +34,7 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
     private CircularProgressButton pairedbutton;
     private CircularProgressButton activeButton;
 
-    private ArrayAdapter<String> pairedArrayAdapter;
+    private BluetoothDeviceAdapter pairedArrayAdapter;
     private BluetoothDeviceAdapter activeArrayAdapter;
 
     //some supporting objects are needed to discover active BlueTooth Devices.
@@ -91,7 +91,7 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
 
         //Listviews need an adapter to function properly. Here we create and add adapters to the
         //listviews
-        pairedArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        pairedArrayAdapter = new BluetoothDeviceAdapter(this, android.R.layout.simple_list_item_1);
         pairedList.setAdapter(pairedArrayAdapter);
 
         activeArrayAdapter = new BluetoothDeviceAdapter(this, android.R.layout.simple_list_item_1);
@@ -154,8 +154,40 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
         pairedList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (DebugFlags.START_DEBUG_ACTIVITY_FROM_LIST_VIEW) {
-                    startDebugActivity();
+                if (DebugFlags.DEBUG_CONTROL_MODULE_LIST_ACTIVITY_NO_BASESTATION_CONNECTION) {
+                    BaseStationConnectActivity.this.cancelDiscovery();
+                    startControlModuleListActivity();
+                    return;
+                } else if(DebugFlags.PERFORM_DEBUG_BASE_STATION_QUERY_FROM_BASE_STATION_CONNECT_ACTIVITY) {
+                    BaseStationConnectActivity.this.cancelDiscovery();
+                    try {
+                        if(issuerAndListenerInitialized) {
+                            destroyIssuerAndListener();
+                            return;
+                        }
+                        BaseStationConnectActivity.this.initIssuerAndListener(activeArrayAdapter.getItem(position));
+                        BaseStationConnectActivity.this.whcsIssuer.queueCommand(WHCSCommand.CreateQueryIfBaseStationCommand(), new ClientCallback() {
+                            @Override
+                            public void onResponse(WHCSCommand command, WHCSResponse response) {
+                                Log.d("WHCS-UCF", "It' the base station.");
+                            }
+                            @Override
+                            public void onTimeOut(WHCSCommand command) {
+                                Log.d("WHCS-UCF", "Timeout trying to connect to base station.");
+                            }
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    Log.d("WHCS-UCF", "beginning to initialize issuer and listener.");
+                    BaseStationConnectActivity.this.cancelDiscovery();
+                    if(issuerAndListenerInitialized) {
+                        destroyIssuerAndListener();
+                        Toast.makeText(BaseStationConnectActivity.this.getApplicationContext(), "Retry in 1 second.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    performAsynchInitialization(pairedArrayAdapter.getItem(position));
                 }
             }
         });
@@ -243,7 +275,7 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
     private void listPairedDevices() {
 
         if(DebugFlags.RUNNING_ON_VM){
-            listDevicesForVM(pairedArrayAdapter);
+            listDevicesForVM(pairedList);
             return;
         }
 
@@ -256,7 +288,7 @@ public class BaseStationConnectActivity extends WHCSActivityWithCleanup {
 
         // put it's one to the adapter
         for(BluetoothDevice device : pairedDevices)
-            pairedArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
+            pairedArrayAdapter.add(device);
     }
 
     private void listActiveDevices() {
